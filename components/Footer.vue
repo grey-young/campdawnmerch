@@ -2,59 +2,81 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-section brand">
-        <img src="/logo.png" alt="CampDawn Logo" class="footer-logo" />
-        <p>CampDawn Merch - Quality gear for the craft.</p>
+        <img src="/logo.png" alt="CampDawn Merch Logo" class="footer-logo" />
+        <p class="desc">
+          {{ b.tradingName }} sells branded gaming merchandise. We ship
+          clothing, hoodies, t-shirts, caps, and accessories to customers across
+          Ghana and worldwide.
+        </p>
+        <p class="legal-name">
+          {{ b.legalName }}<br />
+          {{ b.address.full }}
+        </p>
       </div>
 
       <div class="footer-section links">
-        <h4>Navigation</h4>
+        <h4>Shop</h4>
         <ul>
           <li><nuxt-link to="/">Home</nuxt-link></li>
-          <li><nuxt-link to="/products">Products</nuxt-link></li>
+          <li><nuxt-link to="/products">Shop All</nuxt-link></li>
+          <li><nuxt-link to="/about">About Us</nuxt-link></li>
           <li><nuxt-link to="/cart">Cart</nuxt-link></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><nuxt-link to="/contact">Contact</nuxt-link></li>
         </ul>
       </div>
 
-      <div class="footer-section products">
-        <h4>Featured</h4>
+      <div class="footer-section links">
+        <h4>Policies</h4>
         <ul>
-          <li><a href="/products">CampDawn Shirt</a></li>
-          <li><a href="/products">CampDawn Hoodie</a></li>
-          <li><a href="/products">CampDawn Hat</a></li>
+          <li><nuxt-link to="/privacy-policy">Privacy Policy</nuxt-link></li>
+          <li><nuxt-link to="/terms">Terms &amp; Conditions</nuxt-link></li>
+          <li><nuxt-link to="/shipping-policy">Shipping &amp; Delivery</nuxt-link></li>
+          <li><nuxt-link to="/refund-policy">Refund &amp; Returns</nuxt-link></li>
         </ul>
       </div>
 
-      <div class="footer-section socials">
-        <h4>Follow Us</h4>
+      <div class="footer-section contact">
+        <h4>Get in Touch</h4>
+        <ul class="contact-list">
+          <li>
+            <i class="bi bi-envelope"></i>
+            <a :href="b.emailHref">{{ b.email }}</a>
+          </li>
+          <li>
+            <i class="bi bi-telephone"></i>
+            <a :href="b.phoneHref">{{ b.phone }}</a>
+          </li>
+          <li>
+            <i class="bi bi-geo-alt"></i>
+            <span>{{ b.address.city }}, {{ b.address.country }}</span>
+          </li>
+        </ul>
+
         <div class="social-links">
-          <a
-            href="https://www.instagram.com/campdawn_esports"
-            title="Instagram"
-            target="_blank"
-            ><i class="bi bi-instagram"></i
-          ></a>
-          <a
-            href="https://x.com/campdawnesports"
-            title="Twitter"
-            target="_blank"
-            ><i class="bi bi-twitter"></i
-          ></a>
-          <a href="mailto:campdawn06@gmail.com" title="Email" target="_blank"
-            ><i class="bi bi-envelope"></i
-          ></a>
-          <a
-            href="https://www.tiktok.com/@campdawn_esports"
-            title="tiktok"
-            target="_blank"
-            ><i class="bi bi-tiktok"></i
-          ></a>
+          <a :href="b.socials.instagram" title="Instagram" target="_blank" rel="noopener">
+            <i class="bi bi-instagram"></i>
+          </a>
+          <a :href="b.socials.twitter" title="X (Twitter)" target="_blank" rel="noopener">
+            <i class="bi bi-twitter-x"></i>
+          </a>
+          <a :href="b.socials.tiktok" title="TikTok" target="_blank" rel="noopener">
+            <i class="bi bi-tiktok"></i>
+          </a>
+          <a :href="b.emailHref" title="Email">
+            <i class="bi bi-envelope"></i>
+          </a>
         </div>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 CampDawn Merch. All rights reserved.</p>
+      <p>&copy; {{ year }} {{ b.tradingName }}. All rights reserved.</p>
+      <nav class="bottom-links" aria-label="Legal">
+        <nuxt-link to="/privacy-policy">Privacy</nuxt-link>
+        <nuxt-link to="/terms">Terms</nuxt-link>
+        <nuxt-link to="/refund-policy">Refunds</nuxt-link>
+        <nuxt-link to="/shipping-policy">Shipping</nuxt-link>
+      </nav>
     </div>
   </footer>
 </template>
@@ -62,6 +84,13 @@
 <script>
 export default {
   name: "Footer",
+
+  data() {
+    return {
+      b: useBusiness(),
+      year: new Date().getFullYear(),
+    };
+  },
 
   mounted() {
     if (!this.$gsap) return;
@@ -111,7 +140,7 @@ export default {
     width: 90%;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
     gap: 40px;
     margin-bottom: 40px;
 
@@ -121,20 +150,28 @@ export default {
         flex-direction: column;
 
         .footer-logo {
-          width: 100px;
-          height: 100px;
+          width: 90px;
+          height: 90px;
+          object-fit: contain;
           margin-bottom: 15px;
         }
 
-        p {
-          font-size: 0.95rem;
+        .desc {
+          font-size: 0.92rem;
           line-height: 1.6;
           color: #aaa;
+          margin-bottom: 16px;
+        }
+
+        .legal-name {
+          font-size: 0.8rem;
+          line-height: 1.6;
+          color: #777;
         }
       }
 
       h4 {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         text-transform: uppercase;
         margin-bottom: 20px;
         font-weight: bold;
@@ -159,14 +196,36 @@ export default {
         }
       }
 
-      &.socials {
-        .social-links {
+      &.contact {
+        .contact-list li {
           display: flex;
-          gap: 15px;
+          align-items: center;
+          gap: 10px;
+          color: #aaa;
+          font-size: 0.9rem;
+
+          i {
+            color: #c8f135;
+            font-size: 1rem;
+          }
 
           a {
-            width: 45px;
-            height: 45px;
+            color: #aaa;
+
+            &:hover {
+              color: #fff;
+            }
+          }
+        }
+
+        .social-links {
+          display: flex;
+          gap: 12px;
+          margin-top: 22px;
+
+          a {
+            width: 42px;
+            height: 42px;
             background: #222;
             border-radius: 50%;
             display: flex;
@@ -174,15 +233,15 @@ export default {
             justify-content: center;
             color: #fff;
             text-decoration: none;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition:
               background 0.3s ease,
               transform 0.3s ease;
 
             &:hover {
-              background: #fff;
+              background: #c8f135;
               color: #000;
-              transform: scale(1.1);
+              transform: translateY(-3px);
             }
           }
         }
@@ -192,12 +251,42 @@ export default {
 
   .footer-bottom {
     border-top: 1px solid #333;
-    padding-top: 30px;
-    text-align: center;
-    color: #666;
-    font-size: 0.9rem;
+    padding-top: 26px;
     width: 90%;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: #666;
+    font-size: 0.9rem;
+
+    p {
+      margin: 0;
+    }
+
+    .bottom-links {
+      display: flex;
+      gap: 20px;
+
+      a {
+        color: #888;
+        text-decoration: none;
+        font-size: 0.85rem;
+
+        &:hover {
+          color: #fff;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .footer .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 34px;
   }
 }
 
@@ -206,19 +295,17 @@ export default {
     padding: 40px 0 15px;
 
     .footer-content {
-      width: 95%;
+      width: 92%;
       gap: 30px;
       margin-bottom: 30px;
 
       .footer-section {
         &.brand {
-          .footer-logo {
-            width: 80px;
-            height: 80px;
-          }
+          grid-column: 1 / -1;
 
-          p {
-            font-size: 0.9rem;
+          .footer-logo {
+            width: 72px;
+            height: 72px;
           }
         }
 
@@ -234,24 +321,22 @@ export default {
             font-size: 0.9rem;
           }
         }
-
-        &.socials .social-links {
-          gap: 12px;
-
-          a {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-          }
-        }
       }
     }
 
     .footer-bottom {
-      width: 95%;
+      width: 92%;
+      flex-direction: column;
+      align-items: flex-start;
       padding-top: 20px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
+  }
+}
+
+@media (max-width: 480px) {
+  .footer .footer-content {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -97,7 +97,7 @@ export default {
 
 <style scoped lang="scss">
 .admin-layout {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 290px 1fr;
   background: #f5f2ed;
@@ -195,6 +195,8 @@ export default {
 .main-content {
   min-width: 0;
   padding: 28px;
+  oveflow-x: hidden;
+  overflow-y: auto;
 }
 
 .topbar {

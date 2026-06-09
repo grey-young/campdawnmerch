@@ -13,11 +13,10 @@
             <div class="tag">Camp Dawn Gaming</div>
             <h2>See The World<br />Through Our Craft</h2>
             <p>
-              At Camp Dawn Gaming, we don't just play; we build. Our merch
-              collection is an extension of the same precision and passion we
-              bring to our digital builds. From custom-weighted fabrics to
-              minimalist designs, every piece is crafted to be a part of your
-              daily kit. Gear up and represent the craft.
+              CampDawn Merch is an online store for branded gaming merchandise:
+              clothing, hoodies, t-shirts, caps, and accessories. Browse the
+              collection, pay securely online, and we'll ship your order to your
+              door across Ghana and worldwide.
             </p>
             <nuxt-link to="/products">
               <button class="shop-btn">
@@ -95,7 +94,7 @@ export default {
 // ── Gamer palette ─────────────────────────────────────────────
 $black: #0a0a0a;
 $offwhite: #f0f0ec;
-$accent: #c8f135; // toxic lime — classic gamer highlight
+$accent: #c8f135; // toxic lime, classic gamer highlight
 
 .background {
   opacity: 0;
@@ -125,7 +124,7 @@ $accent: #c8f135; // toxic lime — classic gamer highlight
     z-index: 1;
   }
 
-  // Corner bracket — top left
+  // Corner bracket, top left
   &::after {
     content: "";
     position: absolute;
@@ -265,7 +264,7 @@ $accent: #c8f135; // toxic lime — classic gamer highlight
       width: 100%;
       height: 340px;
 
-      // On tablet disable the flex-grow hover — too disruptive in a row
+      // On tablet disable the flex-grow hover, too disruptive in a row
       img:hover {
         flex: 1;
       }

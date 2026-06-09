@@ -9,7 +9,20 @@
     <div v-else class="container">
       <div class="one">
         <div class="image">
-          <img :src="mainImage" :alt="product.name" />
+          <img :src="activeImage || mainImage" :alt="product.name" />
+        </div>
+
+        <div v-if="galleryImages.length > 1" class="thumbs">
+          <button
+            v-for="(image, index) in galleryImages"
+            :key="index"
+            type="button"
+            class="thumb"
+            :class="{ active: (activeImage || mainImage) === image }"
+            @click="activeImage = image"
+          >
+            <img :src="image" :alt="`${product.name} image ${index + 1}`" />
+          </button>
         </div>
       </div>
 
@@ -127,6 +140,7 @@ export default {
       quantity: 1,
       selectedSize: "",
       selectedColor: "",
+      activeImage: "",
       errorMessage: "",
       successMessage: "",
     };
@@ -163,16 +177,24 @@ export default {
       );
     },
 
-    mainImage() {
-      const images = this.product?.merch_product_images || [];
+    galleryImages() {
+      const images = (this.product?.merch_product_images || [])
+        .slice()
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-      if (!images.length) return "/shirt.jpg";
+      if (!images.length) return ["/shirt.jpg"];
 
+      // Main image first, then the rest in sort order.
       const main = images.find((image) => image.is_main);
+      const ordered = main
+        ? [main, ...images.filter((image) => image.id !== main.id)]
+        : images;
 
-      return main
-        ? main.image_url
-        : images.sort((a, b) => a.sort_order - b.sort_order)[0].image_url;
+      return ordered.map((image) => image.image_url);
+    },
+
+    mainImage() {
+      return this.galleryImages[0] || "/shirt.jpg";
     },
   },
 
@@ -229,6 +251,7 @@ export default {
       }
 
       this.product = data;
+      this.activeImage = this.mainImage;
 
       if (this.variants.length) {
         this.selectedColor = this.variants[0].color;
@@ -463,10 +486,11 @@ main {
     .one {
       height: 100%;
       width: 100%;
-      overflow: hidden;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 16px;
       opacity: 0;
       transform: translateY(30px);
 
@@ -482,6 +506,40 @@ main {
           width: 100%;
           object-fit: cover;
           display: block;
+        }
+      }
+
+      .thumbs {
+        width: 90%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+
+        .thumb {
+          height: 84px;
+          width: 84px;
+          padding: 0;
+          border: 2px solid transparent;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #f3eee6;
+          cursor: pointer;
+          transition: 0.2s ease;
+
+          img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            display: block;
+          }
+
+          &:hover {
+            transform: translateY(-2px);
+          }
+
+          &.active {
+            border-color: #111;
+          }
         }
       }
     }

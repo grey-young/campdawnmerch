@@ -90,25 +90,45 @@
 
       <div class="form-card" ref="card">
         <div class="card-title">
-          <h2>Product Image</h2>
-          <p>Upload a new image to replace or add the main product image.</p>
+          <h2>Product Images</h2>
+          <p>Add multiple images. Choose one as the main product image.</p>
         </div>
 
         <div class="upload-box" @click="$refs.imageInput.click()">
           <input
             ref="imageInput"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
             hidden
-            @change="handleImage"
+            @change="handleImages"
           />
 
-          <img v-if="imagePreview" :src="imagePreview" alt="Product preview" />
-
-          <div v-else class="upload-empty">
+          <div class="upload-empty">
             <div class="upload-icon">+</div>
-            <strong>Click to upload image</strong>
-            <p>PNG, JPG or WEBP</p>
+            <strong>Click to upload images</strong>
+            <p>PNG, JPG or WEBP. You can select many images.</p>
+          </div>
+        </div>
+
+        <div v-if="images.length" class="preview-grid">
+          <div
+            v-for="(image, index) in images"
+            :key="image.key"
+            class="preview-card"
+            :class="{ main: image.is_main }"
+          >
+            <img :src="image.url" alt="Product preview" />
+
+            <div class="preview-actions">
+              <button type="button" @click="setMainImage(index)">
+                {{ image.is_main ? "Main Image" : "Set Main" }}
+              </button>
+
+              <button type="button" class="danger" @click="removeImage(index)">
+                Remove
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -217,9 +237,8 @@ export default {
       successMessage: "",
       categories: [],
       productId: "",
-      mainImageId: null,
-      imageFile: null,
-      imagePreview: "",
+      images: [],
+      deletedImageIds: [],
 
       form: {
         name: "",
@@ -368,14 +387,20 @@ export default {
         is_featured: data.is_featured || false,
       };
 
-      const images = data.merch_product_images || [];
-      const mainImage =
-        images.find((image) => image.is_main) ||
-        images.sort((a, b) => a.sort_order - b.sort_order)[0];
+      this.images = (data.merch_product_images || [])
+        .slice()
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map((image) => ({
+          key: image.id,
+          id: image.id,
+          url: image.image_url,
+          file: null,
+          is_main: !!image.is_main,
+          isNew: false,
+        }));
 
-      if (mainImage) {
-        this.mainImageId = mainImage.id;
-        this.imagePreview = mainImage.image_url;
+      if (this.images.length && !this.images.some((image) => image.is_main)) {
+        this.images[0].is_main = true;
       }
 
       this.variants = (data.merch_product_variants || []).map((variant) => ({
@@ -436,44 +461,94 @@ export default {
       }
     },
 
-    handleImage(event) {
-      const file = event.target.files[0];
-
-      if (!file) return;
-
+    handleImages(event) {
+      const files = Array.from(event.target.files || []);
       const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-      if (!allowedTypes.includes(file.type)) {
-        this.errorMessage = "Please upload a JPG, PNG, or WEBP image.";
+      const validFiles = files.filter((file) =>
+        allowedTypes.includes(file.type),
+      );
+
+      if (!validFiles.length) {
+        this.errorMessage = "Please upload JPG, PNG, or WEBP images.";
         return;
       }
 
-      this.imageFile = file;
-      this.imagePreview = URL.createObjectURL(file);
+      const newImages = validFiles.map((file, index) => ({
+        key: `${Date.now()}-${index}-${file.name}`,
+        id: null,
+        url: URL.createObjectURL(file),
+        file,
+        is_main: this.images.length === 0 && index === 0,
+        isNew: true,
+      }));
+
+      this.images = [...this.images, ...newImages];
+
+      if (!this.images.some((image) => image.is_main)) {
+        this.images[0].is_main = true;
+      }
+
       this.errorMessage = "";
+      event.target.value = "";
 
       this.$nextTick(() => {
         if (this.$gsap) {
           this.$gsap.fromTo(
-            ".upload-box img",
-            { scale: 1.08, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.7, ease: "power3.out" },
+            ".preview-card",
+            { y: 20, opacity: 0, scale: 0.96 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 0.45,
+              stagger: 0.06,
+              ease: "power3.out",
+            },
           );
         }
       });
     },
 
-    async uploadImage() {
-      if (!this.imageFile) return null;
+    removeImage(index) {
+      const image = this.images[index];
 
-      const fileExt = this.imageFile.name.split(".").pop();
+      if (image.id) {
+        this.deletedImageIds.push(image.id);
+      }
+
+      if (image.isNew && image.url) {
+        URL.revokeObjectURL(image.url);
+      }
+
+      this.images.splice(index, 1);
+
+      if (
+        this.images.length &&
+        !this.images.some((current) => current.is_main)
+      ) {
+        this.images[0].is_main = true;
+      }
+    },
+
+    setMainImage(index) {
+      this.images = this.images.map((image, imageIndex) => ({
+        ...image,
+        is_main: imageIndex === index,
+      }));
+    },
+
+    async uploadFile(file) {
+      const fileExt = file.name.split(".").pop();
       const cleanSlug = this.form.slug || Date.now();
-      const fileName = `${Date.now()}-${cleanSlug}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.round(
+        Math.random() * 10000,
+      )}-${cleanSlug}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
       const { error } = await this.$supabase.storage
         .from("merch-products")
-        .upload(filePath, this.imageFile, {
+        .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -485,6 +560,60 @@ export default {
         .getPublicUrl(filePath);
 
       return data.publicUrl;
+    },
+
+    async saveImages() {
+      // Remove images the admin deleted.
+      if (this.deletedImageIds.length) {
+        const { error } = await this.$supabase
+          .from("merch_product_images")
+          .delete()
+          .in("id", this.deletedImageIds);
+
+        if (error) throw error;
+
+        this.deletedImageIds = [];
+      }
+
+      // Upload any newly added files first.
+      for (const image of this.images) {
+        if (image.isNew && image.file) {
+          image.url = await this.uploadFile(image.file);
+        }
+      }
+
+      // Persist order + main flag for every remaining image.
+      for (let index = 0; index < this.images.length; index++) {
+        const image = this.images[index];
+
+        const payload = {
+          image_url: image.url,
+          alt_text: this.form.name,
+          is_main: !!image.is_main,
+          sort_order: index + 1,
+        };
+
+        if (image.id) {
+          const { error } = await this.$supabase
+            .from("merch_product_images")
+            .update(payload)
+            .eq("id", image.id);
+
+          if (error) throw error;
+        } else {
+          const { data, error } = await this.$supabase
+            .from("merch_product_images")
+            .insert({ product_id: this.productId, ...payload })
+            .select("id")
+            .single();
+
+          if (error) throw error;
+
+          image.id = data.id;
+          image.isNew = false;
+          image.file = null;
+        }
+      }
     },
 
     validateVariants() {
@@ -554,35 +683,7 @@ export default {
 
         if (productError) throw productError;
 
-        const imageUrl = await this.uploadImage();
-
-        if (imageUrl) {
-          if (this.mainImageId) {
-            const { error: imageUpdateError } = await this.$supabase
-              .from("merch_product_images")
-              .update({
-                image_url: imageUrl,
-                alt_text: this.form.name,
-                is_main: true,
-                sort_order: 1,
-              })
-              .eq("id", this.mainImageId);
-
-            if (imageUpdateError) throw imageUpdateError;
-          } else {
-            const { error: imageInsertError } = await this.$supabase
-              .from("merch_product_images")
-              .insert({
-                product_id: this.productId,
-                image_url: imageUrl,
-                alt_text: this.form.name,
-                is_main: true,
-                sort_order: 1,
-              });
-
-            if (imageInsertError) throw imageInsertError;
-          }
-        }
+        await this.saveImages();
 
         if (this.deletedVariantIds.length) {
           const { error: deleteError } = await this.$supabase
@@ -890,6 +991,67 @@ definePageMeta({
   p {
     margin: 8px 0 0;
     color: #777;
+  }
+}
+
+.preview-grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.preview-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fbfaf8;
+  border: 1px solid #eee4d7;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+
+  &.main {
+    border: 2px solid #111;
+  }
+
+  img {
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.preview-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+
+  button {
+    flex: 1;
+    border: none;
+    padding: 11px 10px;
+    border-radius: 13px;
+    background: #111;
+    color: white;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .danger {
+    background: #ffe8e8;
+    color: #b00020;
+  }
+}
+
+@media (max-width: 980px) {
+  .preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .preview-grid {
+    grid-template-columns: 1fr;
   }
 }
 

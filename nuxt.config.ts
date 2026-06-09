@@ -5,21 +5,23 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "CampDawn Merch ",
+      titleTemplate: "%s",
+      title:
+        "CampDawn Merch | Branded Clothing, Hoodies, T-Shirts, Caps & Accessories",
       meta: [
         {
           name: "description",
           content:
-            "CampDawn is a competitive gaming and esports tournament platform where players and teams compete, track match results, and climb global leaderboards. Join tournaments, challenge top players, and dominate the battlefield.",
+            "CampDawn Merch is an online store for branded gaming merchandise. We sell clothing, hoodies, t-shirts, caps, and accessories and ship every order to customers across Ghana and worldwide. Operated by CampDawn Esport.",
         },
         {
           name: "keywords",
           content:
-            "CampDawn, esports tournaments, gaming tournaments platform, competitive gaming, online esports competitions, gaming brackets, tournament platform, esports teams, match results tracking, gaming leaderboards",
+            "CampDawn Merch, branded merchandise, gaming clothing, hoodies, t-shirts, caps, accessories, online store Ghana, buy merch Ghana, esports apparel, streetwear",
         },
         {
           name: "author",
-          content: "CampDawn",
+          content: "CampDawn Esport",
         },
         {
           name: "robots",
@@ -27,21 +29,26 @@ export default defineNuxtConfig({
         },
 
         {
-          name: "og:title",
-          content: "CampDawn | Competitive Esports & Gaming Tournaments",
-        },
-        {
-          name: "og:description",
+          property: "og:title",
           content:
-            "Join competitive gaming tournaments on CampDawn. Create teams, compete in brackets, submit match results, and climb the esports leaderboards.",
+            "CampDawn Merch | Branded Clothing, Hoodies, Caps & Accessories",
         },
         {
-          name: "og:type",
+          property: "og:description",
+          content:
+            "Shop branded gaming merchandise. Hoodies, t-shirts, caps, and accessories delivered to your door across Ghana and worldwide.",
+        },
+        {
+          property: "og:type",
           content: "website",
         },
         {
-          name: "og:site_name",
-          content: "CampDawn",
+          property: "og:site_name",
+          content: "CampDawn Merch",
+        },
+        {
+          property: "og:image",
+          content: "/logo.png",
         },
 
         {
@@ -50,12 +57,12 @@ export default defineNuxtConfig({
         },
         {
           name: "twitter:title",
-          content: "CampDawn | Competitive Gaming Platform",
+          content: "CampDawn Merch | Branded Gaming Merchandise",
         },
         {
           name: "twitter:description",
           content:
-            "Compete in esports tournaments, join teams, and rise through the CampDawn leaderboards.",
+            "Branded hoodies, t-shirts, caps, and accessories shipped to customers across Ghana and internationally.",
         },
 
         {

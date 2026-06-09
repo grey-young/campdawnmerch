@@ -5,6 +5,12 @@
         <img src="/logo.png" alt="campdawn merch logo" id="logo" />
       </nuxt-link>
 
+      <ul class="main-nav">
+        <li><nuxt-link to="/products">Shop</nuxt-link></li>
+        <li><nuxt-link to="/about">About</nuxt-link></li>
+        <li><nuxt-link to="/contact">Contact</nuxt-link></li>
+      </ul>
+
       <ul class="nav-link">
         <li>
           <nuxt-link to="/cart">
@@ -154,6 +160,40 @@ header {
       width: auto;
     }
 
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li a {
+        color: #111;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        position: relative;
+        transition: color 0.2s ease;
+
+        &::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: -6px;
+          height: 2px;
+          width: 0;
+          background: #111;
+          transition: width 0.25s ease;
+        }
+
+        &:hover::after,
+        &.router-link-active::after {
+          width: 100%;
+        }
+      }
+    }
+
     .nav-link {
       display: flex;
       justify-content: flex-end;
@@ -285,9 +325,23 @@ header {
 }
 
 // ── Tablet ────────────────────────────────────────────────────
+@media (max-width: 820px) {
+  header nav .main-nav {
+    gap: 20px;
+
+    li a {
+      font-size: 0.88rem;
+    }
+  }
+}
+
 @media (max-width: 700px) {
   header nav {
     width: 95%;
+
+    .main-nav {
+      display: none; // full navigation remains available in the footer
+    }
 
     .nav-link {
       gap: 10px;

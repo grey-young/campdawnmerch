@@ -84,8 +84,6 @@
               <h2>Recent orders</h2>
               <p>{{ orders.length }} order(s)</p>
             </div>
-
-            <nuxt-link to="/orders">View all</nuxt-link>
           </div>
 
           <div v-if="orders.length === 0" class="empty-orders">

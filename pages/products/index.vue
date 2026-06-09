@@ -16,9 +16,31 @@
         />
       </div>
 
+      <div v-if="categories.length" class="category-filter">
+        <button
+          type="button"
+          class="chip"
+          :class="{ active: selectedCategory === 'all' }"
+          @click="selectedCategory = 'all'"
+        >
+          All
+        </button>
+
+        <button
+          v-for="category in categories"
+          :key="category.id"
+          type="button"
+          class="chip"
+          :class="{ active: selectedCategory === category.id }"
+          @click="selectedCategory = category.id"
+        >
+          {{ category.name }}
+        </button>
+      </div>
+
       <div v-if="filteredProducts.length === 0" class="empty">
         <h3>No merch found</h3>
-        <p>Try searching another product name.</p>
+        <p>Try another search or category.</p>
       </div>
 
       <div v-else class="products-grid">
@@ -54,20 +76,40 @@ export default {
     return {
       loading: true,
       search: "",
+      selectedCategory: "all",
       products: [],
     };
   },
 
   computed: {
-    filteredProducts() {
-      return this.products.filter((product) => {
-        const term = this.search.toLowerCase();
+    categories() {
+      const unique = new Map();
 
-        return (
+      for (const product of this.products) {
+        const category = product.merch_categories;
+
+        if (category && category.id) {
+          unique.set(category.id, category.name);
+        }
+      }
+
+      return Array.from(unique, ([id, name]) => ({ id, name }));
+    },
+
+    filteredProducts() {
+      const term = this.search.toLowerCase();
+
+      return this.products.filter((product) => {
+        const matchesSearch =
           product.name.toLowerCase().includes(term) ||
           product.slug.toLowerCase().includes(term) ||
-          (product.merch_categories?.name || "").toLowerCase().includes(term)
-        );
+          (product.merch_categories?.name || "").toLowerCase().includes(term);
+
+        const matchesCategory =
+          this.selectedCategory === "all" ||
+          product.merch_categories?.id === this.selectedCategory;
+
+        return matchesSearch && matchesCategory;
       });
     },
   },
@@ -229,6 +271,36 @@ export default {
         outline: none;
         font-size: 16px;
         width: 350px;
+      }
+    }
+
+    .category-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 36px;
+
+      .chip {
+        border: 1px solid rgba(0, 0, 0, 0.18);
+        background: white;
+        color: #111;
+        border-radius: 999px;
+        padding: 0.65rem 1.25rem;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.2s ease;
+
+        &:hover {
+          border-color: #111;
+          transform: translateY(-2px);
+        }
+
+        &.active {
+          background: #111;
+          color: white;
+          border-color: #111;
+        }
       }
     }
 

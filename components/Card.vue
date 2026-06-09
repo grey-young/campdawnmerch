@@ -39,7 +39,7 @@ export default {
   transition: transform 0.3s ease;
   cursor: pointer;
   height: 100%;
-  min-width: 0; // was 400px — let the parent grid control width
+  min-width: 0; // was 400px, let the parent grid control width
   width: 100%;
   background: white;
 

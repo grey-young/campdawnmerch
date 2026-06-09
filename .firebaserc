@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "campdawn-8fc54"
+  },
+  "targets": {
+    "campdawn-8fc54": {
+      "hosting": {
+        "merch-shop": [
+          "campdawn-merch"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

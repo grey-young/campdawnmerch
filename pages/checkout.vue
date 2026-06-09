@@ -316,6 +316,7 @@ export default {
     await this.getStoreSettings();
 
     if (this.user) {
+      await useGuestCart().mergeIntoAccount(this.$supabase, this.user.id);
       await this.getProfile();
       await this.getSupabaseCart();
     } else {

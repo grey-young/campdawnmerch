@@ -122,6 +122,7 @@ export default {
   data() {
     return {
       loading: true,
+      isGuest: false,
       cartId: null,
       cartItems: [],
       deliveryFee: 0,
@@ -231,13 +232,20 @@ export default {
 
       const {
         data: { user },
-        error: userError,
       } = await this.$supabase.auth.getUser();
 
-      if (userError || !user) {
-        this.$router.push("/login");
+      if (!user) {
+        // Guests see a cart stored locally, no login required.
+        this.isGuest = true;
+        await this.loadGuestCart();
+        this.loading = false;
         return;
       }
+
+      this.isGuest = false;
+
+      // Bring any items added before signing in into the account.
+      await useGuestCart().mergeIntoAccount(this.$supabase, user.id);
 
       const { data: cart, error: cartError } = await this.$supabase
         .from("merch_carts")
@@ -310,6 +318,78 @@ export default {
       this.loading = false;
     },
 
+    async loadGuestCart() {
+      const guestCart = useGuestCart();
+      const rawCart = guestCart.read();
+
+      if (!rawCart.length) {
+        this.cartItems = [];
+        return;
+      }
+
+      const variantIds = rawCart.map((item) => item.variant_id);
+
+      const { data, error } = await this.$supabase
+        .from("merch_product_variants")
+        .select(
+          `
+          id,
+          color,
+          size,
+          stock,
+          sku,
+          is_active,
+          merch_products (
+            id,
+            name,
+            slug,
+            price,
+            status,
+            merch_product_images (
+              id,
+              image_url,
+              is_main,
+              sort_order
+            )
+          )
+        `,
+        )
+        .in("id", variantIds);
+
+      if (error) {
+        this.errorMessage = error.message;
+        this.cartItems = [];
+        return;
+      }
+
+      this.cartItems = (data || [])
+        .filter(
+          (variant) =>
+            variant.is_active &&
+            variant.merch_products &&
+            variant.merch_products.status === "active",
+        )
+        .map((variant) => {
+          const saved = rawCart.find((item) => item.variant_id === variant.id);
+
+          // Shaped to match the signed-in cart item structure the template uses.
+          return {
+            id: variant.id,
+            quantity: Number(saved?.quantity || 1),
+            merch_product_variants: variant,
+          };
+        });
+
+      // Drop any saved items whose variant no longer exists or is inactive.
+      const validIds = new Set(this.cartItems.map((item) => item.id));
+
+      if (validIds.size !== rawCart.length) {
+        guestCart.write(
+          rawCart.filter((item) => validIds.has(item.variant_id)),
+        );
+      }
+    },
+
     getProduct(item) {
       return item.merch_product_variants?.merch_products || {};
     },
@@ -337,6 +417,12 @@ export default {
         return;
       }
 
+      if (this.isGuest) {
+        useGuestCart().setQuantity(item.id, quantity);
+        item.quantity = quantity;
+        return;
+      }
+
       const { error } = await this.$supabase
         .from("merch_cart_items")
         .update({ quantity })
@@ -361,6 +447,19 @@ export default {
     },
 
     async removeItem(item) {
+      if (this.isGuest) {
+        useGuestCart().remove(item.id);
+        this.cartItems = this.cartItems.filter(
+          (cartItem) => cartItem.id !== item.id,
+        );
+        this.successMessage = "Item removed.";
+
+        setTimeout(() => {
+          this.successMessage = "";
+        }, 1500);
+        return;
+      }
+
       const { error } = await this.$supabase
         .from("merch_cart_items")
         .delete()

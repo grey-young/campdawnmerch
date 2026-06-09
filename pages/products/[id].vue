@@ -319,7 +319,36 @@ export default {
         } = await this.$supabase.auth.getUser();
 
         if (userError || !user) {
-          this.$router.push("/login");
+          // Guests get a cart stored locally, no login required.
+          const guestCart = useGuestCart();
+          const existing = guestCart
+            .read()
+            .find((item) => item.variant_id === this.selectedVariant.id);
+          const currentQuantity = existing ? Number(existing.quantity) : 0;
+
+          if (currentQuantity + this.quantity > this.selectedVariant.stock) {
+            this.errorMessage = existing
+              ? "You already have this item in cart. Stock limit reached."
+              : "Quantity is more than available stock.";
+            return;
+          }
+
+          guestCart.add(
+            this.selectedVariant.id,
+            this.quantity,
+            this.selectedVariant.stock,
+          );
+
+          this.successMessage = "Added to cart successfully.";
+
+          if (this.$gsap) {
+            this.$gsap.fromTo(
+              ".success",
+              { y: 10, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" },
+            );
+          }
+
           return;
         }
 

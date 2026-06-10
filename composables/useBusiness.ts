@@ -13,7 +13,7 @@ export const useBusiness = () => {
     email: "info@campdawnesports.com",
     emailHref: "mailto:info@campdawnesports.com",
 
-    phone: "+233 24 513 1039",
+    phone: "+233 594388395",
     phoneHref: `tel:+${phoneDigits}`,
     whatsappHref: `https://wa.me/${phoneDigits}`,
 

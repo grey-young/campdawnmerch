@@ -81,7 +81,7 @@
           <div class="bottom animate-item">
             <span>Already have an account?</span>
 
-            <nuxt-link to="/login">Login</nuxt-link>
+            <nuxt-link :to="loginLink">Login</nuxt-link>
           </div>
         </div>
       </div>
@@ -107,6 +107,15 @@ export default {
         confirmPassword: "",
       },
     };
+  },
+
+  computed: {
+    loginLink() {
+      const redirect = this.$route.query.redirect;
+      return redirect
+        ? `/login?redirect=${encodeURIComponent(redirect)}`
+        : "/login";
+    },
   },
 
   mounted() {
@@ -236,7 +245,12 @@ export default {
         this.successMessage = "Account created successfully.";
 
         setTimeout(() => {
-          this.$router.push("/login");
+          const redirect = this.$route.query.redirect;
+          this.$router.push(
+            redirect
+              ? `/login?redirect=${encodeURIComponent(redirect)}`
+              : "/login",
+          );
         }, 1000);
       } catch (error) {
         this.errorMessage = error.message || "Signup failed.";

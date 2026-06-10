@@ -20,6 +20,10 @@ export const useGuestCart = () => {
   const write = (items) => {
     if (!hasStorage()) return;
     localStorage.setItem(KEY, JSON.stringify(items));
+    // Let the nav (and anything else) refresh its cart count.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("cart:updated"));
+    }
   };
 
   const count = () =>

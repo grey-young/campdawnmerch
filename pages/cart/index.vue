@@ -434,6 +434,7 @@ export default {
       }
 
       item.quantity = quantity;
+      this.notifyCartUpdated();
     },
 
     decreaseQuantity(item) {
@@ -474,10 +475,17 @@ export default {
         (cartItem) => cartItem.id !== item.id,
       );
       this.successMessage = "Item removed.";
+      this.notifyCartUpdated();
 
       setTimeout(() => {
         this.successMessage = "";
       }, 1500);
+    },
+
+    notifyCartUpdated() {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cart:updated"));
+      }
     },
 
     async applyCoupon() {

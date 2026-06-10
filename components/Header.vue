@@ -13,8 +13,11 @@
 
       <ul class="nav-link">
         <li>
-          <nuxt-link to="/cart">
+          <nuxt-link to="/cart" class="cart-link">
             <i class="bi bi-bag"></i>
+            <span v-if="cartCount > 0" class="cart-badge">
+              {{ cartCount > 99 ? "99+" : cartCount }}
+            </span>
           </nuxt-link>
         </li>
 
@@ -58,6 +61,7 @@ export default {
       user: null,
       profile: null,
       isProfileOpen: false,
+      cartCount: 0,
     };
   },
 
@@ -70,7 +74,9 @@ export default {
 
   async mounted() {
     await this.getUser();
+    await this.refreshCartCount();
     document.addEventListener("click", this.handleOutsideClick);
+    window.addEventListener("cart:updated", this.refreshCartCount);
     this.$nextTick(() => {
       if (this.$gsap) {
         this.$gsap.from("header nav > *", {
@@ -86,6 +92,7 @@ export default {
 
   beforeUnmount() {
     document.removeEventListener("click", this.handleOutsideClick);
+    window.removeEventListener("cart:updated", this.refreshCartCount);
   },
 
   methods: {
@@ -103,6 +110,38 @@ export default {
           .maybeSingle();
         this.profile = data || null;
       }
+    },
+
+    async refreshCartCount() {
+      const {
+        data: { user },
+      } = await this.$supabase.auth.getUser();
+
+      if (!user) {
+        this.cartCount = useGuestCart().count();
+        return;
+      }
+
+      const { data: cart } = await this.$supabase
+        .from("merch_carts")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!cart) {
+        this.cartCount = 0;
+        return;
+      }
+
+      const { data } = await this.$supabase
+        .from("merch_cart_items")
+        .select("quantity")
+        .eq("cart_id", cart.id);
+
+      this.cartCount = (data || []).reduce(
+        (sum, item) => sum + Number(item.quantity || 0),
+        0,
+      );
     },
 
     toggleProfileMenu() {
@@ -123,6 +162,7 @@ export default {
       this.user = null;
       this.profile = null;
       this.isProfileOpen = false;
+      await this.refreshCartCount();
       this.$router.push("/login");
     },
   },
@@ -215,6 +255,27 @@ header {
             font-size: 1.5rem;
             display: block; // removes inline baseline gap
           }
+        }
+
+        .cart-link {
+          position: relative;
+          display: block;
+        }
+
+        .cart-badge {
+          position: absolute;
+          top: -8px;
+          right: -10px;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 5px;
+          border-radius: 999px;
+          background: #111;
+          color: white;
+          font-size: 0.7rem;
+          font-weight: 800;
+          line-height: 18px;
+          text-align: center;
         }
 
         button {

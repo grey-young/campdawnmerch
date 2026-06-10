@@ -58,7 +58,7 @@
 
           <div class="bottom animate-item">
             <span>Don’t have an account?</span>
-            <nuxt-link to="/signup">Create one</nuxt-link>
+            <nuxt-link :to="signupLink">Create one</nuxt-link>
           </div>
         </div>
       </div>
@@ -81,6 +81,15 @@ export default {
         password: "",
       },
     };
+  },
+
+  computed: {
+    signupLink() {
+      const redirect = this.$route.query.redirect;
+      return redirect
+        ? `/signup?redirect=${encodeURIComponent(redirect)}`
+        : "/signup";
+    },
   },
 
   mounted() {
@@ -147,7 +156,7 @@ export default {
         this.successMessage = "Signed in successfully.";
 
         setTimeout(() => {
-          this.$router.push("/products");
+          this.$router.push(this.$route.query.redirect || "/products");
         }, 700);
       } catch (error) {
         this.errorMessage = error.message || "Login failed.";

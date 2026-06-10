@@ -409,6 +409,10 @@ export default {
           if (error) throw error;
         }
 
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cart:updated"));
+        }
+
         this.successMessage = "Added to cart successfully.";
 
         if (this.$gsap) {

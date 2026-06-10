@@ -297,15 +297,21 @@ export default {
     this.paystackPublicKey = useRuntimeConfig().public.paystackPublicKey || "";
 
     await this.getCurrentUser();
+
+    // Checkout requires an account. Send guests to login and bring them back
+    // here afterwards; their localStorage cart merges in once signed in.
+    if (!this.user) {
+      this.$router.replace(
+        `/login?redirect=${encodeURIComponent(this.$route.fullPath)}`,
+      );
+      return;
+    }
+
     await this.getStoreSettings();
 
-    if (this.user) {
-      await useGuestCart().mergeIntoAccount(this.$supabase, this.user.id);
-      await this.getProfile();
-      await this.getSupabaseCart();
-    } else {
-      await this.getGuestCart();
-    }
+    await useGuestCart().mergeIntoAccount(this.$supabase, this.user.id);
+    await this.getProfile();
+    await this.getSupabaseCart();
 
     if (this.couponCode) {
       await this.applyCoupon();
@@ -815,6 +821,10 @@ export default {
           .eq("cart_id", this.cartId);
       } else {
         localStorage.removeItem("campdawn_guest_cart");
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cart:updated"));
       }
     },
 

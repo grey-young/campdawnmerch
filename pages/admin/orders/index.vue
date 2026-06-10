@@ -626,7 +626,8 @@ definePageMeta({
   border-radius: 26px;
   padding: 24px;
   margin-bottom: 18px;
-
+  overflow: hidden;
+  overflow-y: auto;
   p {
     margin: 0 0 8px;
     color: #f4d28b;

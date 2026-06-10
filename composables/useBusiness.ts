@@ -1,7 +1,7 @@
 // Single source of truth for business / contact details used across the site
 // (footer, contact page, and all policy pages). Update values here once.
 export const useBusiness = () => {
-  const phoneDigits = "233245131039";
+  const phoneDigits = "233247042495";
 
   return {
     // Legal entity registered for payments (shown to Paystack for verification)

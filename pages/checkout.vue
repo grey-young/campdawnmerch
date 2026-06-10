@@ -90,34 +90,14 @@
 
             <div class="payment-options">
               <button
-                v-if="settings.paystack_enabled"
                 type="button"
-                :class="{ active: paymentMethod === 'paystack' }"
+                class="active"
                 @click="paymentMethod = 'paystack'"
               >
                 <span>Paystack</span>
                 <b>Pay online</b>
               </button>
-
-              <button
-                v-if="settings.pay_on_delivery_enabled"
-                type="button"
-                :class="{ active: paymentMethod === 'pay_on_delivery' }"
-                @click="paymentMethod = 'pay_on_delivery'"
-              >
-                <span>Pay on delivery</span>
-                <b>Pay when your merch arrives</b>
-              </button>
             </div>
-
-            <p
-              v-if="
-                !settings.paystack_enabled && !settings.pay_on_delivery_enabled
-              "
-              class="small-error"
-            >
-              No payment method is currently available.
-            </p>
           </div>
 
           <div class="card" ref="card">
@@ -214,6 +194,8 @@
 </template>
 
 <script>
+import PaystackPop from "@paystack/inline-js";
+
 export default {
   name: "CheckoutPage",
 
@@ -233,6 +215,7 @@ export default {
       guestEmail: "",
       errorMessage: "",
       successMessage: "",
+      paystackPublicKey: "",
 
       settings: {
         delivery_fee: 0,
@@ -311,6 +294,7 @@ export default {
 
   async mounted() {
     this.couponCode = this.$route.query.coupon || "";
+    this.paystackPublicKey = useRuntimeConfig().public.paystackPublicKey || "";
 
     await this.getCurrentUser();
     await this.getStoreSettings();
@@ -415,10 +399,6 @@ export default {
           pay_on_delivery_enabled: data.pay_on_delivery_enabled,
           paystack_enabled: data.paystack_enabled,
         };
-
-        if (!data.paystack_enabled && data.pay_on_delivery_enabled) {
-          this.paymentMethod = "pay_on_delivery";
-        }
       }
     },
 
@@ -728,10 +708,7 @@ export default {
           .from("merch_payments")
           .insert({
             order_id: order.id,
-            provider:
-              this.paymentMethod === "pay_on_delivery"
-                ? "pay_on_delivery"
-                : "paystack",
+            provider: "paystack",
             reference: paymentReference,
             amount: this.grandTotal,
             status: "pending",
@@ -745,33 +722,99 @@ export default {
 
         if (paymentError) throw paymentError;
 
-        if (this.appliedCoupon) {
-          await this.$supabase
-            .from("merch_discount_codes")
-            .update({
-              used_count: Number(this.appliedCoupon.used_count || 0) + 1,
-            })
-            .eq("id", this.appliedCoupon.id);
-        }
-
-        if (this.user && this.cartId) {
-          await this.$supabase
-            .from("merch_cart_items")
-            .delete()
-            .eq("cart_id", this.cartId);
-        } else {
-          localStorage.removeItem("campdawn_guest_cart");
-        }
-
-        this.successMessage = "Order placed successfully.";
-
-        setTimeout(() => {
-          this.$router.push(`/orders/${order.id}`);
-        }, 700);
+        // Charge first, and only confirm the order once payment is verified
+        // server-side. The order stays "pending" until then.
+        this.payWithPaystack(order, paymentReference);
       } catch (error) {
         this.errorMessage = error.message || "Failed to place order.";
-      } finally {
         this.placingOrder = false;
+      }
+    },
+
+    payWithPaystack(order, reference) {
+      if (!this.paystackPublicKey) {
+        this.errorMessage =
+          "Paystack is not configured. Please contact support.";
+        this.placingOrder = false;
+        return;
+      }
+
+      const popup = new PaystackPop();
+
+      popup.newTransaction({
+        key: this.paystackPublicKey,
+        email: this.guestEmail || this.user?.email,
+        amount: Math.round(this.grandTotal * 100),
+        currency: "GHS",
+        reference,
+        metadata: {
+          order_id: order.id,
+          order_number: order.order_number,
+        },
+        onSuccess: (transaction) => {
+          this.verifyAndFinish(order, transaction.reference || reference);
+        },
+        onCancel: () => {
+          this.placingOrder = false;
+          this.errorMessage =
+            "Payment cancelled. Your order is saved as pending — you can try paying again.";
+        },
+        onError: (error) => {
+          this.placingOrder = false;
+          this.errorMessage =
+            error?.message || "Payment failed. Please try again.";
+        },
+      });
+    },
+
+    async verifyAndFinish(order, reference) {
+      try {
+        const { data, error } = await this.$supabase.functions.invoke(
+          "verify-paystack",
+          { body: { reference } },
+        );
+
+        if (error) {
+          // FunctionsHttpError carries the response body in error.context.
+          let detail = error.message;
+          try {
+            const body = await error.context.json();
+            detail = body?.error || detail;
+          } catch (_) {}
+          throw new Error(detail);
+        }
+        if (!data?.ok) {
+          throw new Error(data?.error || "Payment verification failed.");
+        }
+
+        await this.finalizeOrder(order);
+        this.successMessage = "Payment successful. Order confirmed.";
+        this.$router.push(`/thank-you?order=${order.id}`);
+      } catch (error) {
+        this.placingOrder = false;
+        this.errorMessage =
+          error.message ||
+          "We couldn't verify your payment. If you were charged, please contact support.";
+      }
+    },
+
+    async finalizeOrder(order) {
+      if (this.appliedCoupon) {
+        await this.$supabase
+          .from("merch_discount_codes")
+          .update({
+            used_count: Number(this.appliedCoupon.used_count || 0) + 1,
+          })
+          .eq("id", this.appliedCoupon.id);
+      }
+
+      if (this.user && this.cartId) {
+        await this.$supabase
+          .from("merch_cart_items")
+          .delete()
+          .eq("cart_id", this.cartId);
+      } else {
+        localStorage.removeItem("campdawn_guest_cart");
       }
     },
 

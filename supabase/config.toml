@@ -1,0 +1,7 @@
+project_id = "vgcfpblcrsrhnvevykkx"
+
+# Guests (no Supabase JWT) must be able to call this, so JWT verification is
+# disabled. Security comes from the Paystack secret-key verification inside the
+# function, not from the caller's identity.
+[functions.verify-paystack]
+verify_jwt = false

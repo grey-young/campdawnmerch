@@ -54,7 +54,7 @@ export default {
       25vw,
       320px
     ); // scales with viewport, never too tall on mobile
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     background: #f3eee6;
   }

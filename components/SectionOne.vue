@@ -123,7 +123,7 @@ export default {
       img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
       }
     }
@@ -204,7 +204,7 @@ export default {
         img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           display: block;
         }
       }
@@ -374,7 +374,7 @@ export default {
         transform 0.3s ease;
 
       img {
-        object-fit: cover;
+        object-fit: contain;
         filter: grayscale(100%);
         transition: filter 0.3s ease;
       }

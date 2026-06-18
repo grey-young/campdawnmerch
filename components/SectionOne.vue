@@ -8,10 +8,12 @@
     </div>
     <div class="images">
       <div class="image-item" v-for="(image, index) in images" :key="index">
-        <img :src="`/${image.name}`" :alt="image.alt" />
+        <img :src="image.src" :alt="image.alt" />
         <div class="img-hover">
           <h3>{{ image.alt }}</h3>
-          <button type="button">Shop Now</button>
+          <nuxt-link :to="image.to">
+            <button type="button">Shop Now</button>
+          </nuxt-link>
         </div>
       </div>
     </div>
@@ -19,35 +21,27 @@
 </template>
 
 <script>
+// Fallback hero images, shown when there aren't enough featured products.
+// Each featured product the admin uploads replaces these slots one by one,
+// starting from the first.
+const DEFAULT_IMAGES = [
+  { src: "/hoodie.png", alt: "CampDawn Hoodie", to: "/products" },
+  { src: "/shirt2.jpg", alt: "CampDawn Shirt", to: "/products" },
+  { src: "/shirt.jpg", alt: "CampDawn Shirt", to: "/products" },
+  { src: "/hat.png", alt: "CampDawn Hat", to: "/products" },
+  { src: "/shirt3.png", alt: "CampDawn Shirt", to: "/products" },
+];
+
 export default {
   name: "SectionOne",
   data() {
     return {
-      images: [
-        {
-          name: "hoodie.png",
-          alt: "CampDawn Hoodie",
-        },
-        {
-          name: "shirt2.jpg",
-          alt: "CampDawn Shirt ",
-        },
-        {
-          name: "shirt.jpg",
-          alt: "CampDawn Shirt",
-        },
-        {
-          name: "hat.png",
-          alt: "CampDawn Hat",
-        },
-        {
-          name: "shirt3.png",
-          alt: "CampDawn Shirt ",
-        },
-      ],
+      images: DEFAULT_IMAGES.map((image) => ({ ...image })),
     };
   },
   mounted() {
+    this.loadFeatured();
+
     setTimeout(() => {
       const tl = this.$gsap.timeline({
         defaults: { ease: "power3.out", duration: 0.5 },
@@ -63,6 +57,53 @@ export default {
         "-=0.4",
       );
     }, 3000);
+  },
+  methods: {
+    async loadFeatured() {
+      const { data, error } = await this.$supabase
+        .from("merch_products")
+        .select(
+          `
+          id, name, slug, is_featured,
+          merch_product_images (image_url, is_main, sort_order)
+        `,
+        )
+        .eq("status", "active")
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false })
+        .limit(DEFAULT_IMAGES.length);
+
+      if (error) {
+        console.error(error.message);
+        return;
+      }
+
+      const featured = data || [];
+      if (!featured.length) return;
+
+      // Replace the default slots one by one with each featured product.
+      // 1 featured replaces only the first slot, 2 the first two, and so on.
+      const slots = DEFAULT_IMAGES.map((image) => ({ ...image }));
+
+      featured.forEach((product, index) => {
+        slots[index] = {
+          src: this.getMainImage(product),
+          alt: product.name,
+          to: `/products/${product.slug}`,
+        };
+      });
+
+      this.images = slots;
+    },
+
+    getMainImage(product) {
+      const images = product.merch_product_images || [];
+      if (!images.length) return "/shirt.jpg";
+      const mainImage = images.find((image) => image.is_main);
+      return mainImage
+        ? mainImage.image_url
+        : images.sort((a, b) => a.sort_order - b.sort_order)[0].image_url;
+    },
   },
 };
 </script>

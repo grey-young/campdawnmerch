@@ -11,19 +11,27 @@
       </nuxt-link>
     </nav>
 
-    <div class="products">
-      <nuxt-link
-        v-for="product in products"
-        :key="product.id"
-        :to="`/products/${product.slug}`"
-        class="product-link"
-      >
-        <Card
-          :name="product.name"
-          :price="`GH₵ ${formatMoney(product.price)}`"
-          :image="getMainImage(product)"
-        />
-      </nuxt-link>
+    <div
+      v-for="category in groupedByCategory"
+      :key="category.id"
+      class="category-block"
+    >
+      <h2 class="category-title">{{ category.name }}</h2>
+
+      <div class="row">
+        <nuxt-link
+          v-for="product in category.products"
+          :key="product.id"
+          :to="`/products/${product.slug}`"
+          class="product-link"
+        >
+          <Card
+            :name="product.name"
+            :price="`GH₵ ${formatMoney(product.price)}`"
+            :image="getMainImage(product)"
+          />
+        </nuxt-link>
+      </div>
     </div>
   </section>
 </template>
@@ -36,6 +44,28 @@ export default {
     return {
       products: [],
     };
+  },
+
+  computed: {
+    // Group active products by their category so each category renders as its
+    // own horizontally scrollable row (e.g. all jerseys together).
+    groupedByCategory() {
+      const groups = new Map();
+
+      for (const product of this.products) {
+        const category = product.merch_categories;
+        const id = category?.id || "uncategorized";
+        const name = category?.name || "Other";
+
+        if (!groups.has(id)) {
+          groups.set(id, { id, name, products: [] });
+        }
+
+        groups.get(id).products.push(product);
+      }
+
+      return Array.from(groups.values());
+    },
   },
 
   async mounted() {
@@ -57,15 +87,15 @@ export default {
           merch_product_variants (id, color, size, stock, is_active)
         `,
         )
-        .eq("status", "active");
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error(error.message);
         return;
       }
 
-      const shuffled = (data || []).sort(() => Math.random() - 0.5);
-      this.products = shuffled.slice(0, 5);
+      this.products = data || [];
     },
 
     getMainImage(product) {
@@ -85,7 +115,7 @@ export default {
       if (!this.$gsap) return;
 
       this.$gsap.set(".section-2 nav > *", { y: 30, opacity: 0 });
-      this.$gsap.set(".section-2 .products .product-link", {
+      this.$gsap.set(".section-2 .category-block", {
         y: 50,
         opacity: 0,
       });
@@ -108,7 +138,7 @@ export default {
           ease: "power3.out",
         })
         .to(
-          ".section-2 .products .product-link",
+          ".section-2 .category-block",
           {
             y: 0,
             opacity: 1,
@@ -171,33 +201,53 @@ export default {
     }
   }
 
-  .products {
+  .category-block {
     width: 90%;
     margin: 60px auto 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(400px, 1fr));
-    gap: 28px;
 
-    .product-link {
-      text-decoration: none;
-      display: block;
-      width: 100%;
-      min-width: 0;
-      height: 100%;
-      color: black;
+    .category-title {
+      font-size: clamp(18px, 2.2vw, 26px);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 24px;
     }
-  }
-}
 
-@media (max-width: 1400px) {
-  .section-2 .products {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
+    // Horizontal scroller: shows the first products in a category and lets
+    // you swipe/scroll sideways through the rest of that category.
+    .row {
+      display: flex;
+      gap: 28px;
+      overflow-x: auto;
+      padding-bottom: 16px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
 
-@media (max-width: 1100px) {
-  .section-2 .products {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+
+      &::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 999px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .product-link {
+        text-decoration: none;
+        display: block;
+        flex: 0 0 auto;
+        width: 340px;
+        max-width: 80vw;
+        scroll-snap-align: start;
+        color: black;
+      }
+    }
   }
 }
 
@@ -211,11 +261,17 @@ export default {
       align-items: flex-start;
     }
 
-    .products {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 40px;
+    .category-block {
       width: 95%;
+      margin-top: 40px;
+
+      .row {
+        gap: 16px;
+
+        .product-link {
+          width: 260px;
+        }
+      }
     }
   }
 }
@@ -226,15 +282,20 @@ export default {
 
     nav {
       width: 95%;
-      width: 95%;
       gap: 12px;
     }
 
-    .products {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-      gap: 12px;
+    .category-block {
       width: 95%;
       margin-top: 30px;
+
+      .row {
+        gap: 12px;
+
+        .product-link {
+          width: 75vw;
+        }
+      }
     }
   }
 }

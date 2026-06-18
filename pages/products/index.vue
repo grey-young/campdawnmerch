@@ -53,6 +53,7 @@
           <Card
             :name="product.name"
             :price="`GH₵ ${formatMoney(product.price)}`"
+            :compare-price="product.compare_at_price"
             :image="getMainImage(product)"
           />
 

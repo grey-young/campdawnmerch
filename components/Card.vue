@@ -2,7 +2,10 @@
   <div class="card">
     <img :src="finalImage" :alt="name" />
     <h3>{{ name }}</h3>
-    <p>{{ formattedPrice }}</p>
+    <p class="price">
+      <span class="current">{{ formattedPrice }}</span>
+      <span v-if="formattedCompare" class="compare">{{ formattedCompare }}</span>
+    </p>
   </div>
 </template>
 
@@ -13,6 +16,9 @@ export default {
   props: {
     name: { type: String, required: true },
     price: { type: [String, Number], required: true },
+    // Original price shown struck-through. Only rendered when it's higher
+    // than the current price.
+    comparePrice: { type: [String, Number], default: null },
     image: { type: String, default: "/shirt.jpg" },
   },
 
@@ -27,6 +33,18 @@ export default {
     formattedPrice() {
       if (typeof this.price === "string") return this.price;
       return `GH₵ ${Number(this.price || 0).toFixed(2)}`;
+    },
+
+    formattedCompare() {
+      const compare = Number(this.comparePrice || 0);
+      const current = Number(
+        typeof this.price === "string"
+          ? this.price.replace(/[^0-9.]/g, "")
+          : this.price || 0,
+      );
+
+      if (!compare || compare <= current) return "";
+      return `GH₵ ${compare.toFixed(2)}`;
     },
   },
 };
@@ -65,11 +83,21 @@ export default {
     text-transform: uppercase;
   }
 
-  p {
+  p.price {
     font-size: clamp(13px, 1.3vw, 16px);
     font-weight: bold;
     margin: 0 14px 14px;
     color: #333;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+
+    .compare {
+      font-weight: 600;
+      color: #999;
+      text-decoration: line-through;
+      font-size: 0.85em;
+    }
   }
 }
 </style>

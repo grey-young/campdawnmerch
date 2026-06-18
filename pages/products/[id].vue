@@ -31,7 +31,17 @@
 
         <div class="field price-field">
           <label>Price</label>
-          <h1 class="price">GH₵ {{ formatMoney(product.price) }}</h1>
+          <h1 class="price">
+            <span class="current">GH₵ {{ formatMoney(product.price) }}</span>
+            <span
+              v-if="
+                product.compare_at_price &&
+                Number(product.compare_at_price) > Number(product.price)
+              "
+              class="compare"
+              >GH₵ {{ formatMoney(product.compare_at_price) }}</span
+            >
+          </h1>
         </div>
 
         <div class="field description-field">
@@ -590,6 +600,16 @@ main {
       .price {
         font-size: 36px;
         margin: 12px 0 0;
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+
+        .compare {
+          font-size: 22px;
+          color: #999;
+          text-decoration: line-through;
+          font-weight: 600;
+        }
       }
 
       .field {

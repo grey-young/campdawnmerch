@@ -375,7 +375,6 @@ export default {
 
       img {
         object-fit: contain;
-        filter: grayscale(100%);
         transition: filter 0.3s ease;
       }
     }

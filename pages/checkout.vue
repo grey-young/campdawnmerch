@@ -817,18 +817,52 @@ export default {
         },
         onCancel: () => {
           this.placingOrder = false;
+          this.markOrderCancelled(order, reference);
           this.errorMessage =
-            "Payment cancelled. Your order is saved as pending — you can try paying again.";
+            "Payment cancelled. This order was not placed — you can try again.";
         },
         onError: (error) => {
           this.placingOrder = false;
+          this.markOrderCancelled(order, reference);
           this.errorMessage =
             error?.message || "Payment failed. Please try again.";
         },
       });
     },
 
+    // The charge never went through: mark the draft order cancelled and its
+    // payment failed so it doesn't linger as a confusing "unpaid" order.
+    async markOrderCancelled(order, reference) {
+      try {
+        await this.$supabase
+          .from("merch_orders")
+          .update({ order_status: "cancelled" })
+          .eq("id", order.id);
+
+        if (reference) {
+          await this.$supabase
+            .from("merch_payments")
+            .update({ status: "failed" })
+            .eq("reference", reference);
+        }
+      } catch (_) {
+        // Best-effort cleanup; the admin Orders view also hides unconfirmed
+        // orders, so a failed update here is not critical.
+      }
+    },
+
     async verifyAndFinish(order, reference) {
+      // The customer completed the charge at Paystack. Flag the order as
+      // processing right away so it stays visible to admin even if the
+      // verification below fails (e.g. network) — it stays unpaid until the
+      // server confirms the charge and deducts stock.
+      try {
+        await this.$supabase
+          .from("merch_orders")
+          .update({ order_status: "processing" })
+          .eq("id", order.id);
+      } catch (_) {}
+
       try {
         const { data, error } = await this.$supabase.functions.invoke(
           "verify-paystack",

@@ -15,6 +15,11 @@
         <div class="sidebar-head">
           <h2>Orders</h2>
           <input v-model="search" type="text" placeholder="Search orders..." />
+
+          <label class="show-unconfirmed">
+            <input v-model="showUnconfirmed" type="checkbox" />
+            Show unconfirmed / abandoned
+          </label>
         </div>
 
         <div class="order-list">
@@ -207,6 +212,7 @@ export default {
       orders: [],
       selectedOrder: null,
       search: "",
+      showUnconfirmed: false,
       errorMessage: "",
       successMessage: "",
     };
@@ -217,6 +223,9 @@ export default {
       const term = this.search.toLowerCase();
 
       return this.orders.filter((order) => {
+        // Hide abandoned/failed checkout drafts unless explicitly requested.
+        if (!this.showUnconfirmed && !this.isConfirmed(order)) return false;
+
         const address = this.getAddress(order);
 
         return (
@@ -242,9 +251,7 @@ export default {
   async mounted() {
     await this.getOrders();
 
-    if (this.orders.length) {
-      this.selectedOrder = this.orders[0];
-    }
+    this.selectedOrder = this.filteredOrders[0] || null;
 
     this.$nextTick(() => {
       this.animatePage();
@@ -376,6 +383,17 @@ export default {
 
       return (
         address.full_name || address.email || address.phone || "Guest Customer"
+      );
+    },
+
+    // A "real" order: payment confirmed, stock reserved (COD), or already moved
+    // past the pending/cancelled draft stage. Abandoned Paystack attempts stay
+    // pending+unpaid and are excluded.
+    isConfirmed(order) {
+      return (
+        order.payment_status === "paid" ||
+        order.stock_deducted === true ||
+        !["pending", "cancelled"].includes(order.order_status)
       );
     },
 
@@ -516,13 +534,30 @@ definePageMeta({
     letter-spacing: -0.7px;
   }
 
-  input {
+  input[type="text"] {
     width: 100%;
     border: 1px solid #ded8cf;
     background: #fbfaf8;
     border-radius: 16px;
     padding: 14px 15px;
     outline: none;
+  }
+
+  .show-unconfirmed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #777;
+    cursor: pointer;
+
+    input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
   }
 }
 

@@ -90,12 +90,23 @@
 
             <div class="payment-options">
               <button
+                v-if="settings.paystack_enabled"
                 type="button"
-                class="active"
+                :class="{ active: paymentMethod === 'paystack' }"
                 @click="paymentMethod = 'paystack'"
               >
                 <span>Paystack</span>
                 <b>Pay online</b>
+              </button>
+
+              <button
+                v-if="settings.pay_on_delivery_enabled"
+                type="button"
+                :class="{ active: paymentMethod === 'pay_on_delivery' }"
+                @click="paymentMethod = 'pay_on_delivery'"
+              >
+                <span>Pay on Delivery</span>
+                <b>Pay when it arrives</b>
               </button>
             </div>
           </div>
@@ -122,6 +133,8 @@
               <img
                 :src="item.image_url || '/shirt.jpg'"
                 :alt="item.product_name"
+                loading="lazy"
+                decoding="async"
               />
 
               <div>
@@ -182,7 +195,11 @@
           </button>
 
           <p class="hint">
-            Stock will be deducted after successful payment confirmation.
+            {{
+              paymentMethod === "pay_on_delivery"
+                ? "Your order is placed now and you pay in cash when it is delivered."
+                : "Stock will be deducted after successful payment confirmation."
+            }}
           </p>
         </aside>
       </form>
@@ -335,7 +352,7 @@ export default {
         ease: "power3.out",
       });
 
-      this.$gsap.from(this.$refs.card, {
+      this.$gsap.from(".checkout-layout .left .card", {
         y: 28,
         opacity: 0,
         duration: 0.65,
@@ -405,6 +422,11 @@ export default {
           pay_on_delivery_enabled: data.pay_on_delivery_enabled,
           paystack_enabled: data.paystack_enabled,
         };
+
+        // If online payment is off but pay-on-delivery is on, pick it by default.
+        if (!this.settings.paystack_enabled && this.settings.pay_on_delivery_enabled) {
+          this.paymentMethod = "pay_on_delivery";
+        }
       }
     },
 
@@ -708,13 +730,19 @@ export default {
 
         if (addressError) throw addressError;
 
-        const paymentReference = `CD-${Date.now()}-${order.id.slice(0, 6)}`;
+        const isCod =
+          this.paymentMethod === "pay_on_delivery" &&
+          this.settings.pay_on_delivery_enabled;
+
+        const provider = isCod ? "pay_on_delivery" : "paystack";
+        const prefix = isCod ? "COD" : "CD";
+        const paymentReference = `${prefix}-${Date.now()}-${order.id.slice(0, 6)}`;
 
         const { error: paymentError } = await this.$supabase
           .from("merch_payments")
           .insert({
             order_id: order.id,
-            provider: "paystack",
+            provider,
             reference: paymentReference,
             amount: this.grandTotal,
             status: "pending",
@@ -728,6 +756,12 @@ export default {
 
         if (paymentError) throw paymentError;
 
+        if (isCod) {
+          // No online charge: reserve stock + confirm the order right away.
+          await this.placeCodOrder(order);
+          return;
+        }
+
         // Charge first, and only confirm the order once payment is verified
         // server-side. The order stays "pending" until then.
         this.payWithPaystack(order, paymentReference);
@@ -735,6 +769,27 @@ export default {
         this.errorMessage = error.message || "Failed to place order.";
         this.placingOrder = false;
       }
+    },
+
+    async placeCodOrder(order) {
+      // Deduct stock and promote the order via a security-definer RPC that
+      // checks the order belongs to the signed-in customer.
+      const { error } = await this.$supabase.rpc("place_cod_order", {
+        p_order_id: order.id,
+      });
+
+      if (error) {
+        // If the RPC isn't deployed yet the order still exists as pending;
+        // surface the problem instead of silently leaving stock untouched.
+        this.errorMessage =
+          "Order saved but could not be confirmed. Please contact support.";
+        this.placingOrder = false;
+        return;
+      }
+
+      await this.finalizeOrder(order);
+      this.successMessage = "Order placed. Pay on delivery.";
+      this.$router.push(`/thank-you?order=${order.id}`);
     },
 
     payWithPaystack(order, reference) {

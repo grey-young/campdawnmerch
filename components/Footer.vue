@@ -2,7 +2,13 @@
   <footer class="footer">
     <div class="footer-content">
       <div class="footer-section brand">
-        <img src="/logo.png" alt="CampDawn Merch Logo" class="footer-logo" />
+        <img
+          src="/logo.png"
+          alt="CampDawn Merch Logo"
+          class="footer-logo"
+          loading="lazy"
+          decoding="async"
+        />
         <p class="desc">
           {{ b.tradingName }} sells branded gaming merchandise. We ship
           clothing, hoodies, t-shirts, caps, and accessories to customers across

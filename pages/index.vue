@@ -27,11 +27,11 @@
           </div>
         </div>
         <div class="image">
-          <img src="/2.jpg" alt="CampDawn Merch" />
-          <img src="/1.jpg" alt="CampDawn Merch" />
-          <img src="/6.jpg" alt="CampDawn Merch" />
-          <img src="/7.jpg" alt="CampDawn Merch" />
-          <img src="/9.jpg" alt="CampDawn Merch" />
+          <img src="/2.jpg" alt="CampDawn Merch" loading="lazy" decoding="async" />
+          <img src="/1.jpg" alt="CampDawn Merch" loading="lazy" decoding="async" />
+          <img src="/6.jpg" alt="CampDawn Merch" loading="lazy" decoding="async" />
+          <img src="/7.jpg" alt="CampDawn Merch" loading="lazy" decoding="async" />
+          <img src="/9.jpg" alt="CampDawn Merch" loading="lazy" decoding="async" />
         </div>
       </div>
     </div>

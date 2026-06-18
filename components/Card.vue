@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <img :src="finalImage" :alt="name" />
+    <img :src="finalImage" :alt="name" loading="lazy" decoding="async" />
     <h3>{{ name }}</h3>
     <p class="price">
       <span class="current">{{ formattedPrice }}</span>

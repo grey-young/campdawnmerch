@@ -22,7 +22,12 @@
         <div class="cart-items" ref="itemsList">
           <article v-for="item in cartItems" :key="item.id" class="cart-item">
             <div class="item-image">
-              <img :src="getItemImage(item)" :alt="getProduct(item).name" />
+              <img
+                :src="getItemImage(item)"
+                :alt="getProduct(item).name"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
 
             <div class="item-info">

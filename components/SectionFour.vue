@@ -6,7 +6,13 @@
     </div>
 
     <div class="circle">
-      <img src="/logo.png" alt="CampDawn Logo" class="center-logo" />
+      <img
+        src="/logo.png"
+        alt="CampDawn Logo"
+        class="center-logo"
+        loading="lazy"
+        decoding="async"
+      />
       <a
         href="https://www.instagram.com/campdawn_esports"
         class="social-icon social-1"
@@ -40,6 +46,7 @@ export default {
   data() {
     return {
       orbitTimeline: null,
+      revealTimeline: null,
     };
   },
   mounted() {
@@ -48,7 +55,7 @@ export default {
     this.$gsap.set(".center-logo", { opacity: 0, scale: 0 });
     this.$gsap.set(".social-icon", { opacity: 0, scale: 0 });
 
-    const tl = this.$gsap
+    const tl = (this.revealTimeline = this.$gsap
       .timeline({
         scrollTrigger: {
           trigger: ".section-4",
@@ -87,7 +94,7 @@ export default {
           stagger: 0.12,
         },
         "-=0.3",
-      );
+      ));
 
     // Create continuous orbit animation
     this.orbitTimeline = this.$gsap
@@ -112,14 +119,30 @@ export default {
       );
 
     // Pause orbit on hover, resume on leave
-    const socialIcons = document.querySelectorAll(".social-icon");
-    socialIcons.forEach((icon) => {
-      icon.addEventListener("mouseenter", () => {
-        this.orbitTimeline.pause();
-      });
-      icon.addEventListener("mouseleave", () => {
-        this.orbitTimeline.play();
-      });
+    this.pauseOrbit = () => this.orbitTimeline && this.orbitTimeline.pause();
+    this.resumeOrbit = () => this.orbitTimeline && this.orbitTimeline.play();
+    this.socialIcons = Array.from(document.querySelectorAll(".social-icon"));
+    this.socialIcons.forEach((icon) => {
+      icon.addEventListener("mouseenter", this.pauseOrbit);
+      icon.addEventListener("mouseleave", this.resumeOrbit);
+    });
+  },
+
+  beforeUnmount() {
+    // Stop the infinite orbit and the scroll-triggered reveal so they don't
+    // keep ticking on detached nodes after leaving the page.
+    if (this.orbitTimeline) this.orbitTimeline.kill();
+
+    if (this.revealTimeline) {
+      if (this.revealTimeline.scrollTrigger) {
+        this.revealTimeline.scrollTrigger.kill();
+      }
+      this.revealTimeline.kill();
+    }
+
+    (this.socialIcons || []).forEach((icon) => {
+      icon.removeEventListener("mouseenter", this.pauseOrbit);
+      icon.removeEventListener("mouseleave", this.resumeOrbit);
     });
   },
 };

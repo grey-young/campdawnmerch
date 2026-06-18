@@ -1,6 +1,39 @@
 <template>
   <div class="admin-layout">
-    <aside class="sidebar">
+    <!-- Mobile top bar with hamburger (hidden on desktop) -->
+    <header class="mobile-bar">
+      <button
+        class="hamburger"
+        type="button"
+        aria-label="Open menu"
+        @click="sidebarOpen = true"
+      >
+        <i class="bi bi-list"></i>
+      </button>
+
+      <div class="mobile-brand">
+        <img src="/logo.png" alt="CampDawn Merch Logo" />
+        <span>{{ pageTitle }}</span>
+      </div>
+    </header>
+
+    <!-- Backdrop shown behind the drawer on mobile -->
+    <div
+      v-if="sidebarOpen"
+      class="backdrop"
+      @click="sidebarOpen = false"
+    ></div>
+
+    <aside class="sidebar" :class="{ open: sidebarOpen }">
+      <button
+        class="close-btn"
+        type="button"
+        aria-label="Close menu"
+        @click="sidebarOpen = false"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+
       <div class="brand">
         <img src="/logo.png" alt="CampDawn Merch Logo" />
         <div>
@@ -38,7 +71,15 @@ export default {
     return {
       adminEmail: "",
       allowedRoles: ["admin", "staff", "super_admin"],
+      sidebarOpen: false,
     };
+  },
+
+  watch: {
+    // Close the mobile drawer whenever the route changes.
+    "$route.fullPath"() {
+      this.sidebarOpen = false;
+    },
   },
 
   computed: {
@@ -97,10 +138,23 @@ export default {
 
 <style scoped lang="scss">
 .admin-layout {
-  height: 100vh;
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 290px 1fr;
   background: #f5f2ed;
+}
+
+// Mobile-only top bar with the hamburger toggle.
+.mobile-bar {
+  display: none;
+}
+
+.backdrop {
+  display: none;
+}
+
+.close-btn {
+  display: none;
 }
 
 .sidebar {
@@ -113,6 +167,7 @@ export default {
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 50;
 }
 
 .brand {
@@ -195,7 +250,7 @@ export default {
 .main-content {
   min-width: 0;
   padding: 28px;
-  oveflow-x: hidden;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -242,36 +297,104 @@ export default {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    position: relative;
-    height: auto;
+  // Top bar with hamburger replaces the always-on sidebar.
+  .mobile-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: #050505;
+    color: white;
+    padding: 12px 16px;
+
+    .hamburger {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .mobile-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+
+      img {
+        height: 32px;
+        width: 32px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+
+      span {
+        font-weight: 700;
+        font-size: 16px;
+        text-transform: capitalize;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
   }
 
-  .nav {
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 60;
+  }
+
+  // Sidebar becomes an off-canvas drawer.
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    max-width: 84vw;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 70;
+    overflow-y: auto;
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+
+  .close-btn {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    place-items: center;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
   }
 
   .main-content {
     padding: 18px;
   }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-
-    h1 {
-      font-size: 26px;
-    }
-  }
 }
 
 @media (max-width: 520px) {
-  .nav {
-    grid-template-columns: 1fr;
-  }
-
   .brand img {
     height: 52px;
     width: 52px;

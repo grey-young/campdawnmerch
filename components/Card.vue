@@ -4,7 +4,9 @@
     <h3>{{ name }}</h3>
     <p class="price">
       <span class="current">{{ formattedPrice }}</span>
-      <span v-if="formattedCompare" class="compare">{{ formattedCompare }}</span>
+      <span v-if="formattedCompare" class="compare">{{
+        formattedCompare
+      }}</span>
     </p>
   </div>
 </template>
@@ -72,7 +74,7 @@ export default {
       25vw,
       320px
     ); // scales with viewport, never too tall on mobile
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     background: #f3eee6;
   }

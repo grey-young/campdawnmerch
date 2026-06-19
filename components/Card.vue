@@ -72,7 +72,7 @@ export default {
       25vw,
       320px
     ); // scales with viewport, never too tall on mobile
-    object-fit: contain;
+    object-fit: cover;
     display: block;
     background: #f3eee6;
   }
@@ -81,6 +81,15 @@ export default {
     font-size: clamp(14px, 1.5vw, 18px);
     margin: 12px 14px 6px;
     text-transform: uppercase;
+    line-height: 1.2;
+    // Always reserve two lines and hide any overflow so titles of different
+    // lengths never change the card height.
+    min-height: 2.4em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   p.price {

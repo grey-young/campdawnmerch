@@ -64,12 +64,13 @@ export default {
         .from("merch_products")
         .select(
           `
-          id, name, slug, is_featured,
+          id, name, slug, is_featured, featured_order,
           merch_product_images (image_url, is_main, sort_order)
         `,
         )
         .eq("status", "active")
         .eq("is_featured", true)
+        .order("featured_order", { ascending: true })
         .order("created_at", { ascending: false })
         .limit(DEFAULT_IMAGES.length);
 

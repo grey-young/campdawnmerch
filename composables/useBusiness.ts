@@ -1,5 +1,3 @@
-// Single source of truth for business / contact details used across the site
-// (footer, contact page, and all policy pages). Update values here once.
 export const useBusiness = () => {
   const phoneDigits = "233247042495";
 

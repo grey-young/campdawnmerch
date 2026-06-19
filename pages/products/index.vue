@@ -327,8 +327,11 @@ export default {
 
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-      gap: 30px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 28px;
+      // Don't stretch cells: a stretched cell makes the card (height:100%) fill
+      // it and pushes the meta row into the next row, causing overlap.
+      align-items: start;
     }
 
     .product-link {
@@ -374,7 +377,7 @@ export default {
   #product-page {
     .all-merch {
       .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 24px;
       }
     }
@@ -399,7 +402,7 @@ export default {
       }
 
       .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       }
     }
   }
@@ -432,8 +435,8 @@ export default {
       }
 
       .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
       }
 
       .product-meta {
@@ -490,8 +493,8 @@ export default {
       }
 
       .products-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
       }
 
       .product-link {
@@ -501,14 +504,12 @@ export default {
       }
 
       .product-meta {
-        flex-direction: column;
-        align-items: flex-start;
+        gap: 6px;
 
         span,
         b {
-          width: 100%;
-          text-align: center;
           font-size: 10px;
+          padding: 6px 8px;
         }
       }
     }

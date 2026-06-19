@@ -34,6 +34,54 @@
       </div>
     </div>
 
+    <div v-if="featuredProducts.length" class="featured-panel">
+      <div class="featured-head">
+        <div>
+          <h2>Featured Arrangement</h2>
+          <p>Order shown in the homepage hero & featured row. Top = first.</p>
+        </div>
+      </div>
+
+      <div class="featured-list">
+        <div
+          v-for="(product, index) in featuredProducts"
+          :key="product.id"
+          class="featured-row"
+        >
+          <span class="pos">{{ index + 1 }}</span>
+
+          <div class="thumb">
+            <img
+              v-if="getMainImage(product)"
+              :src="getMainImage(product)"
+              :alt="product.name"
+            />
+          </div>
+
+          <strong class="name">{{ product.name }}</strong>
+
+          <div class="move">
+            <button
+              type="button"
+              :disabled="index === 0"
+              aria-label="Move up"
+              @click="moveFeatured(index, -1)"
+            >
+              <i class="bi bi-chevron-up"></i>
+            </button>
+            <button
+              type="button"
+              :disabled="index === featuredProducts.length - 1"
+              aria-label="Move down"
+              @click="moveFeatured(index, 1)"
+            >
+              <i class="bi bi-chevron-down"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="toolbar" ref="toolbar">
       <input v-model="search" type="text" placeholder="Search products..." />
 
@@ -186,6 +234,17 @@ export default {
         return sum + this.getProductStock(product);
       }, 0);
     },
+
+    // Featured products in the order they appear on the homepage. Top = first.
+    featuredProducts() {
+      return [...this.products]
+        .filter((product) => product.is_featured)
+        .sort(
+          (a, b) =>
+            (a.featured_order ?? 0) - (b.featured_order ?? 0) ||
+            new Date(b.created_at) - new Date(a.created_at),
+        );
+    },
   },
 
   async mounted() {
@@ -252,6 +311,7 @@ export default {
           compare_at_price,
           status,
           is_featured,
+          featured_order,
           created_at,
           merch_categories (
             id,
@@ -307,6 +367,46 @@ export default {
 
     formatMoney(value) {
       return Number(value || 0).toFixed(2);
+    },
+
+    async moveFeatured(index, direction) {
+      const list = this.featuredProducts;
+      const target = index + direction;
+
+      if (target < 0 || target >= list.length) return;
+
+      // Swap the two products, then renumber the whole list 0..n.
+      const reordered = [...list];
+      [reordered[index], reordered[target]] = [
+        reordered[target],
+        reordered[index],
+      ];
+      reordered.forEach((product, position) => {
+        product.featured_order = position;
+      });
+
+      this.errorMessage = "";
+
+      // Persist only the rows whose position actually changed.
+      const results = await Promise.all(
+        reordered.map((product) =>
+          this.$supabase
+            .from("merch_products")
+            .update({ featured_order: product.featured_order })
+            .eq("id", product.id),
+        ),
+      );
+
+      const failed = results.find((result) => result.error);
+      if (failed) {
+        this.errorMessage = failed.error.message;
+        return;
+      }
+
+      this.successMessage = "Featured order updated.";
+      setTimeout(() => {
+        this.successMessage = "";
+      }, 1500);
     },
 
     async updateProductStatus(product, status) {
@@ -434,6 +534,102 @@ definePageMeta({
     font-size: 34px;
     color: #111;
     letter-spacing: -1px;
+  }
+}
+
+.featured-panel {
+  background: white;
+  border-radius: 26px;
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.06);
+
+  .featured-head {
+    margin-bottom: 18px;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.6px;
+    }
+
+    p {
+      margin: 6px 0 0;
+      color: #777;
+      font-size: 14px;
+    }
+  }
+
+  .featured-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .featured-row {
+    display: grid;
+    grid-template-columns: 34px 52px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    background: #fbfaf8;
+    border: 1px solid #eee4d7;
+    border-radius: 18px;
+    padding: 10px 14px;
+
+    .pos {
+      font-weight: 900;
+      color: #9b753f;
+      text-align: center;
+    }
+
+    .thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f3eee6;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .name {
+      min-width: 0;
+      font-size: 16px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .move {
+      display: flex;
+      gap: 8px;
+
+      button {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 12px;
+        background: #111;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: 0.2s ease;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+      }
+    }
   }
 }
 

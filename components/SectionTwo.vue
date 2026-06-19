@@ -480,8 +480,18 @@ export default {
 
     .head {
       margin-bottom: 28px;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
+      gap: 12px;
+
+      h1 {
+        font-size: 22px;
+      }
+
+      a button {
+        padding: 0.65rem 1.1rem;
+        font-size: 13px;
+        gap: 6px;
+      }
     }
 
     .track .product-link {

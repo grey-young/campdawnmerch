@@ -21,9 +21,6 @@
 </template>
 
 <script>
-// Fallback hero images, shown when there aren't enough featured products.
-// Each featured product the admin uploads replaces these slots one by one,
-// starting from the first.
 const DEFAULT_IMAGES = [
   { src: "/hoodie.png", alt: "CampDawn Hoodie", to: "/products" },
   { src: "/shirt2.jpg", alt: "CampDawn Shirt", to: "/products" },
@@ -82,8 +79,6 @@ export default {
       const featured = data || [];
       if (!featured.length) return;
 
-      // Replace the default slots one by one with each featured product.
-      // 1 featured replaces only the first slot, 2 the first two, and so on.
       const slots = DEFAULT_IMAGES.map((image) => ({ ...image }));
 
       featured.forEach((product, index) => {

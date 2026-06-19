@@ -1,6 +1,6 @@
 <template>
   <section class="section-2">
-    <nav>
+    <div class="head">
       <h1>Featured Items</h1>
 
       <nuxt-link to="/products">
@@ -9,7 +9,7 @@
           <i class="bi bi-arrow-up-right"></i>
         </button>
       </nuxt-link>
-    </nav>
+    </div>
 
     <div v-if="products.length" class="carousel">
       <button
@@ -54,74 +54,111 @@
 </template>
 
 <script>
-// Seamless infinite horizontal loop (adapted from GSAP's official
-// horizontalLoop helper). Items wrap around endlessly in either direction;
-// created paused so it only moves when next()/previous() is called.
-function horizontalLoop(gsap, items, config) {
+// Seamless infinite horizontal loop (GSAP's official horizontalLoop helper,
+// with drag/swipe support). Wraps endlessly in both directions; created paused
+// so it only moves on arrow click or swipe.
+function horizontalLoop(gsap, Draggable, items, config) {
   items = gsap.utils.toArray(items);
   config = config || {};
 
-  const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
+  const tl = gsap.timeline({
+    repeat: config.repeat,
+    paused: config.paused,
+    defaults: { ease: "none" },
+    onReverseComplete: () => tl.totalTime(tl.rawTime() + tl.duration() * 100),
+  });
+
   const length = items.length;
-  const startX = items[0].offsetLeft;
+  let startX = items[0].offsetLeft;
   const times = [];
   const widths = [];
+  const spaceBefore = [];
   const xPercents = [];
   let curIndex = 0;
+  let indexIsDirty = false;
   const pixelsPerSecond = (config.speed || 1) * 100;
-  const snap = gsap.utils.snap(1);
+  const snap = config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1);
+  let timeWrap;
+  let totalWidth;
+  const container = items[0].parentNode;
+  let proxy;
 
-  gsap.set(items, {
-    xPercent: (i, el) => {
-      const w = (widths[i] = parseFloat(gsap.getProperty(el, "width", "px")));
-      xPercents[i] = snap(
-        (parseFloat(gsap.getProperty(el, "x", "px")) / w) * 100 +
-          gsap.getProperty(el, "xPercent"),
-      );
-      return xPercents[i];
-    },
-  });
-  gsap.set(items, { x: 0 });
-
-  const totalWidth =
+  const getTotalWidth = () =>
     items[length - 1].offsetLeft +
     (xPercents[length - 1] / 100) * widths[length - 1] -
     startX +
+    spaceBefore[0] +
     items[length - 1].offsetWidth * gsap.getProperty(items[length - 1], "scaleX") +
     (parseFloat(config.paddingRight) || 0);
 
-  for (let i = 0; i < length; i++) {
-    const item = items[i];
-    const curX = (xPercents[i] / 100) * widths[i];
-    const distanceToStart = item.offsetLeft + curX - startX;
-    const distanceToLoop =
-      distanceToStart + widths[i] * gsap.getProperty(item, "scaleX");
+  function populateWidths() {
+    let b1 = container.getBoundingClientRect();
+    let b2;
+    items.forEach((el, i) => {
+      widths[i] = parseFloat(gsap.getProperty(el, "width", "px"));
+      xPercents[i] = snap(
+        (parseFloat(gsap.getProperty(el, "x", "px")) / widths[i]) * 100 +
+          gsap.getProperty(el, "xPercent"),
+      );
+      b2 = el.getBoundingClientRect();
+      spaceBefore[i] = b2.left - (i ? b1.right : b1.left);
+      b1 = b2;
+    });
+    gsap.set(items, { xPercent: (i) => xPercents[i] });
+    totalWidth = getTotalWidth();
+  }
 
-    tl.to(
-      item,
-      {
-        xPercent: snap(((curX - distanceToLoop) / widths[i]) * 100),
-        duration: distanceToLoop / pixelsPerSecond,
-      },
-      0,
-    )
-      .fromTo(
+  function populateTimeline() {
+    tl.clear();
+    for (let i = 0; i < length; i++) {
+      const item = items[i];
+      const curX = (xPercents[i] / 100) * widths[i];
+      const distanceToStart = item.offsetLeft + curX - startX + spaceBefore[0];
+      const distanceToLoop =
+        distanceToStart + widths[i] * gsap.getProperty(item, "scaleX");
+      tl.to(
         item,
         {
-          xPercent: snap(
-            ((curX - distanceToLoop + totalWidth) / widths[i]) * 100,
-          ),
+          xPercent: snap(((curX - distanceToLoop) / widths[i]) * 100),
+          duration: distanceToLoop / pixelsPerSecond,
         },
-        {
-          xPercent: xPercents[i],
-          duration: (curX - distanceToLoop + totalWidth - curX) / pixelsPerSecond,
-          immediateRender: false,
-        },
-        distanceToLoop / pixelsPerSecond,
+        0,
       )
-      .add("label" + i, distanceToStart / pixelsPerSecond);
+        .fromTo(
+          item,
+          {
+            xPercent: snap(
+              ((curX - distanceToLoop + totalWidth) / widths[i]) * 100,
+            ),
+          },
+          {
+            xPercent: xPercents[i],
+            duration:
+              (curX - distanceToLoop + totalWidth - curX) / pixelsPerSecond,
+            immediateRender: false,
+          },
+          distanceToLoop / pixelsPerSecond,
+        )
+        .add("label" + i, distanceToStart / pixelsPerSecond);
+      times[i] = distanceToStart / pixelsPerSecond;
+    }
+    timeWrap = gsap.utils.wrap(0, tl.duration());
+  }
 
-    times[i] = distanceToStart / pixelsPerSecond;
+  function getClosest(values, value, wrap) {
+    let i = values.length;
+    let closest = 1e10;
+    let index = 0;
+    let d;
+    while (i--) {
+      d = Math.abs(values[i] - value);
+      if (d > wrap / 2) d = wrap - d;
+      if (d < closest) {
+        closest = d;
+        index = i;
+      }
+    }
+    return index;
   }
 
   function toIndex(index, vars) {
@@ -131,19 +168,109 @@ function horizontalLoop(gsap, items, config) {
     }
     const newIndex = gsap.utils.wrap(0, length, index);
     let time = times[newIndex];
-    if (time > tl.time() !== index > curIndex) {
-      vars.modifiers = { time: gsap.utils.wrap(0, tl.duration()) };
+    if (time > tl.time() !== index > curIndex && index !== curIndex) {
       time += tl.duration() * (index > curIndex ? 1 : -1);
     }
+    if (time < 0 || time > tl.duration()) vars.modifiers = { time: timeWrap };
     curIndex = newIndex;
     vars.overwrite = true;
-    return tl.tweenTo(time, vars);
+    gsap.killTweensOf(proxy);
+    return vars.duration === 0
+      ? tl.time(timeWrap(time))
+      : tl.tweenTo(time, vars);
   }
 
-  tl.next = (vars) => toIndex(curIndex + 1, vars);
-  tl.previous = (vars) => toIndex(curIndex - 1, vars);
-  tl.progress(1, true).progress(0, true); // pre-render for snappy first move
+  function refresh(deep) {
+    const progress = tl.progress();
+    tl.progress(0, true);
+    startX = items[0].offsetLeft;
+    populateWidths();
+    deep && populateTimeline();
+    tl.progress(progress, true);
+  }
 
+  gsap.set(items, { x: 0 });
+  populateWidths();
+  populateTimeline();
+
+  tl.toIndex = (index, vars) => toIndex(index, vars);
+  tl.closestIndex = (setCurrent) => {
+    const index = getClosest(times, tl.time(), tl.duration());
+    if (setCurrent) {
+      curIndex = index;
+      indexIsDirty = false;
+    }
+    return index;
+  };
+  tl.current = () => (indexIsDirty ? tl.closestIndex(true) : curIndex);
+  tl.next = (vars) => toIndex(tl.current() + 1, vars);
+  tl.previous = (vars) => toIndex(tl.current() - 1, vars);
+
+  const onResize = () => refresh(true);
+  window.addEventListener("resize", onResize);
+  tl.cleanup = () => {
+    window.removeEventListener("resize", onResize);
+    tl.draggable && tl.draggable.kill();
+    tl.kill();
+  };
+
+  tl.progress(1, true).progress(0, true); // pre-render
+
+  // Drag / swipe support.
+  if (config.draggable && typeof Draggable === "function") {
+    proxy = document.createElement("div");
+    let ratio;
+    let startProgress;
+    let draggable;
+    let lastSnap;
+    let initChangeX;
+    const wrap = gsap.utils.wrap(0, 1);
+    const align = () =>
+      tl.progress(
+        wrap(startProgress + (draggable.startX - draggable.x) * ratio),
+      );
+    const syncIndex = () => tl.closestIndex(true);
+
+    draggable = Draggable.create(proxy, {
+      trigger: container,
+      type: "x",
+      onPressInit() {
+        const x = this.x;
+        gsap.killTweensOf(tl);
+        startProgress = tl.progress();
+        refresh();
+        ratio = 1 / totalWidth;
+        initChangeX = startProgress / -ratio - x;
+        gsap.set(proxy, { x: startProgress / -ratio });
+      },
+      onDrag: align,
+      onThrowUpdate: align,
+      overshootTolerance: 0,
+      inertia: true,
+      snap(value) {
+        if (Math.abs(startProgress / -ratio - this.x) < 10) {
+          return lastSnap + initChangeX;
+        }
+        const time = -(value * ratio) * tl.duration();
+        const wrappedTime = timeWrap(time);
+        const snapTime = times[getClosest(times, wrappedTime, tl.duration())];
+        let dif = snapTime - wrappedTime;
+        if (Math.abs(dif) > tl.duration() / 2) {
+          dif += dif < 0 ? tl.duration() : -tl.duration();
+        }
+        lastSnap = (time + dif) / tl.duration() / -ratio;
+        return lastSnap;
+      },
+      onRelease() {
+        syncIndex();
+        draggable.isThrowing && (indexIsDirty = true);
+      },
+      onThrowComplete: syncIndex,
+    })[0];
+    tl.draggable = draggable;
+  }
+
+  tl.closestIndex(true);
   return tl;
 }
 
@@ -154,19 +281,16 @@ export default {
     return {
       products: [],
       loop: null,
-      resizeTimer: null,
     };
   },
 
   async mounted() {
     await this.getProducts();
     this.$nextTick(() => this.buildLoop());
-    window.addEventListener("resize", this.onResize);
   },
 
   beforeUnmount() {
-    window.removeEventListener("resize", this.onResize);
-    if (this.loop) this.loop.kill();
+    if (this.loop) this.loop.cleanup();
   },
 
   methods: {
@@ -199,18 +323,12 @@ export default {
       const items = track.querySelectorAll(".product-link");
       if (!items.length) return;
 
-      const gap = parseFloat(getComputedStyle(track).columnGap) || 28;
-      this.loop = horizontalLoop(this.$gsap, items, { paddingRight: gap });
-    },
-
-    onResize() {
-      // Widths change at breakpoints, so rebuild the loop with fresh measurements.
-      clearTimeout(this.resizeTimer);
-      this.resizeTimer = setTimeout(() => {
-        if (this.loop) this.loop.kill();
-        this.$gsap && this.$gsap.set(".section-2 .product-link", { clearProps: "all" });
-        this.buildLoop();
-      }, 200);
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 20;
+      this.loop = horizontalLoop(this.$gsap, this.$Draggable, items, {
+        paused: true,
+        draggable: true,
+        paddingRight: gap,
+      });
     },
 
     next() {
@@ -239,15 +357,21 @@ export default {
 
 <style scoped lang="scss">
 .section-2 {
-  min-height: 60vh;
+  // Consistent side gutter on both mobile and desktop.
+  --gutter: clamp(16px, 5vw, 80px);
+  --gap: 20px;
+
+  min-height: 50vh;
   padding: 80px 0;
   background: white;
   position: relative;
   z-index: 2;
+  overflow: hidden;
 
-  nav {
-    width: 90%;
-    margin: 0 auto 50px;
+  // Heading lines up with the gutter.
+  .head {
+    padding: 0 var(--gutter);
+    margin: 0 0 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -262,7 +386,7 @@ export default {
     a {
       color: black;
       text-decoration: none;
-      flex-shrink: 0; // prevents button from squishing on mid-size screens
+      flex-shrink: 0;
 
       button {
         background: black;
@@ -276,7 +400,7 @@ export default {
         display: flex;
         align-items: center;
         gap: 10px;
-        white-space: nowrap; // prevents button text wrapping
+        white-space: nowrap;
 
         &:hover {
           transform: translateY(-3px);
@@ -285,19 +409,38 @@ export default {
     }
   }
 
-  // Arrow | clipped row | arrow
+  // Full-bleed carousel: the track scrolls right to the screen edges, while
+  // the first card sits inset by the gutter.
   .carousel {
-    width: 90%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    position: relative;
   }
 
+  .viewport {
+    overflow: hidden;
+    padding: 0 var(--gutter);
+  }
+
+  .track {
+    display: flex;
+    gap: var(--gap);
+
+    .product-link {
+      text-decoration: none;
+      display: block;
+      flex: 0 0 auto;
+      width: clamp(240px, 22vw, 300px);
+      color: black;
+    }
+  }
+
+  // Arrows overlay the edges (desktop). Hidden on touch where you swipe.
   .nav-arrow {
-    flex-shrink: 0;
-    width: 52px;
-    height: 52px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 50px;
+    height: 50px;
     border: none;
     border-radius: 50%;
     background: #111;
@@ -306,36 +449,24 @@ export default {
     cursor: pointer;
     display: grid;
     place-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     transition: 0.25s ease;
 
     &:hover {
-      transform: scale(1.08);
+      transform: translateY(-50%) scale(1.08);
     }
-  }
 
-  .viewport {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
+    &.left {
+      left: 12px;
+    }
 
-  .track {
-    display: flex;
-    gap: 28px;
-
-    .product-link {
-      text-decoration: none;
-      display: block;
-      flex: 0 0 auto;
-      width: 340px;
-      max-width: 80vw;
-      color: black;
+    &.right {
+      right: 12px;
     }
   }
 
   .empty {
-    width: 90%;
-    margin: 0 auto;
+    padding: 0 var(--gutter);
     color: #777;
     font-weight: 600;
   }
@@ -343,47 +474,24 @@ export default {
 
 @media (max-width: 768px) {
   .section-2 {
+    --gutter: 16px;
+    --gap: 14px;
     padding: 50px 0;
 
-    nav {
-      width: 95%;
-      margin-bottom: 36px;
+    .head {
+      margin-bottom: 28px;
       flex-direction: column;
       align-items: flex-start;
     }
 
-    .carousel {
-      width: 95%;
-      gap: 8px;
-    }
-
-    .nav-arrow {
-      width: 42px;
-      height: 42px;
-      font-size: 18px;
-    }
-
-    .track {
-      gap: 16px;
-
-      .product-link {
-        width: 260px;
-      }
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .section-2 {
-    padding: 40px 0;
-
-    nav {
-      width: 95%;
-      gap: 12px;
-    }
-
     .track .product-link {
-      width: 75vw;
+      // ~2 and a half cards visible on a phone.
+      width: 40vw;
+    }
+
+    // On touch devices the carousel is swiped, so hide the arrows.
+    .nav-arrow {
+      display: none;
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <section class="section-2">
     <div class="head">
-      <h1>Featured Items</h1>
+      <h1>Shop CampDawn</h1>
 
       <nuxt-link to="/products">
         <button>
@@ -11,45 +11,57 @@
       </nuxt-link>
     </div>
 
-    <div v-if="products.length" class="carousel">
-      <button
-        type="button"
-        class="nav-arrow left"
-        aria-label="Previous"
-        @click="prev"
+    <div v-if="categories.length" class="category-rows">
+      <div
+        v-for="category in categories"
+        :key="category.id"
+        class="category-row"
       >
-        <i class="bi bi-chevron-left"></i>
-      </button>
+        <div class="row-head">
+          <h2>{{ category.name }}</h2>
+        </div>
 
-      <div class="viewport">
-        <div class="track" ref="track">
-          <nuxt-link
-            v-for="product in products"
-            :key="product.id"
-            :to="`/products/${product.slug}`"
-            class="product-link"
+        <div class="carousel">
+          <button
+            type="button"
+            class="nav-arrow left"
+            aria-label="Previous"
+            @click="prev(category.id)"
           >
-            <Card
-              :name="product.name"
-              :price="`GH₵ ${formatMoney(product.price)}`"
-              :compare-price="product.compare_at_price"
-              :image="getMainImage(product)"
-            />
-          </nuxt-link>
+            <i class="bi bi-chevron-left"></i>
+          </button>
+
+          <div class="viewport">
+            <div class="track" :ref="(el) => setTrackRef(category.id, el)">
+              <nuxt-link
+                v-for="product in category.products"
+                :key="product.id"
+                :to="`/products/${product.slug}`"
+                class="product-link"
+              >
+                <Card
+                  :name="product.name"
+                  :price="`GH₵ ${formatMoney(product.price)}`"
+                  :compare-price="product.compare_at_price"
+                  :image="getMainImage(product)"
+                />
+              </nuxt-link>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="nav-arrow right"
+            aria-label="Next"
+            @click="next(category.id)"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
         </div>
       </div>
-
-      <button
-        type="button"
-        class="nav-arrow right"
-        aria-label="Next"
-        @click="next"
-      >
-        <i class="bi bi-chevron-right"></i>
-      </button>
     </div>
 
-    <p v-else class="empty">No featured items yet.</p>
+    <p v-else class="empty">No items yet.</p>
   </section>
 </template>
 
@@ -77,7 +89,8 @@ function horizontalLoop(gsap, Draggable, items, config) {
   let curIndex = 0;
   let indexIsDirty = false;
   const pixelsPerSecond = (config.speed || 1) * 100;
-  const snap = config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1);
+  const snap =
+    config.snap === false ? (v) => v : gsap.utils.snap(config.snap || 1);
   let timeWrap;
   let totalWidth;
   const container = items[0].parentNode;
@@ -88,7 +101,8 @@ function horizontalLoop(gsap, Draggable, items, config) {
     (xPercents[length - 1] / 100) * widths[length - 1] -
     startX +
     spaceBefore[0] +
-    items[length - 1].offsetWidth * gsap.getProperty(items[length - 1], "scaleX") +
+    items[length - 1].offsetWidth *
+      gsap.getProperty(items[length - 1], "scaleX") +
     (parseFloat(config.paddingRight) || 0);
 
   function populateWidths() {
@@ -279,18 +293,25 @@ export default {
 
   data() {
     return {
-      products: [],
-      loop: null,
+      categories: [],
     };
+  },
+
+  created() {
+    // Non-reactive stores: DOM track elements (keyed by category id) and the
+    // GSAP loop instances. Kept off the reactive data to avoid Vue proxying
+    // the timelines/elements.
+    this.trackRefs = {};
+    this.loops = {};
   },
 
   async mounted() {
     await this.getProducts();
-    this.$nextTick(() => this.buildLoop());
+    this.$nextTick(() => this.buildLoops());
   },
 
   beforeUnmount() {
-    if (this.loop) this.loop.cleanup();
+    for (const loop of Object.values(this.loops)) loop.cleanup();
   },
 
   methods: {
@@ -299,13 +320,12 @@ export default {
         .from("merch_products")
         .select(
           `
-          id, name, slug, price, compare_at_price, status, is_featured, featured_order,
+          id, name, slug, price, compare_at_price, status,
+          merch_categories (id, name, slug),
           merch_product_images (id, image_url, is_main, sort_order)
         `,
         )
         .eq("status", "active")
-        .eq("is_featured", true)
-        .order("featured_order", { ascending: true })
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -313,30 +333,62 @@ export default {
         return;
       }
 
-      this.products = data || [];
+      this.categories = this.groupByCategory(data || []);
     },
 
-    buildLoop() {
-      const track = this.$refs.track;
-      if (!track || !this.$gsap || !this.products.length) return;
+    // Group active products into one row per category, ordered so the category
+    // with the most items sits at the top. Uncategorised products fall into an
+    // "Other" row.
+    groupByCategory(products) {
+      const groups = new Map();
 
-      const items = track.querySelectorAll(".product-link");
-      if (!items.length) return;
+      for (const product of products) {
+        const category = product.merch_categories;
+        const id = category?.id || "other";
+        const name = category?.name || "Other";
 
-      const gap = parseFloat(getComputedStyle(track).columnGap) || 20;
-      this.loop = horizontalLoop(this.$gsap, this.$Draggable, items, {
-        paused: true,
-        draggable: true,
-        paddingRight: gap,
-      });
+        if (!groups.has(id)) groups.set(id, { id, name, products: [] });
+        groups.get(id).products.push(product);
+      }
+
+      return Array.from(groups.values()).sort(
+        (a, b) => b.products.length - a.products.length,
+      );
     },
 
-    next() {
-      if (this.loop) this.loop.next({ duration: 0.5, ease: "power2.inOut" });
+    setTrackRef(id, el) {
+      if (el) this.trackRefs[id] = el;
+      else delete this.trackRefs[id];
     },
 
-    prev() {
-      if (this.loop) this.loop.previous({ duration: 0.5, ease: "power2.inOut" });
+    buildLoops() {
+      if (!this.$gsap) return;
+
+      for (const category of this.categories) {
+        const track = this.trackRefs[category.id];
+        if (!track) continue;
+
+        const items = track.querySelectorAll(".product-link");
+        if (!items.length) continue;
+
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 20;
+        this.loops[category.id] = horizontalLoop(
+          this.$gsap,
+          this.$Draggable,
+          items,
+          { paused: true, draggable: true, paddingRight: gap },
+        );
+      }
+    },
+
+    next(id) {
+      const loop = this.loops[id];
+      if (loop) loop.next({ duration: 0.5, ease: "power2.inOut" });
+    },
+
+    prev(id) {
+      const loop = this.loops[id];
+      if (loop) loop.previous({ duration: 0.5, ease: "power2.inOut" });
     },
 
     getMainImage(product) {
@@ -368,7 +420,7 @@ export default {
   z-index: 2;
   overflow: hidden;
 
-  // Heading lines up with the gutter.
+  // Section heading lines up with the gutter.
   .head {
     padding: 0 var(--gutter);
     margin: 0 0 40px;
@@ -406,6 +458,26 @@ export default {
           transform: translateY(-3px);
         }
       }
+    }
+  }
+
+  // One stacked row per category.
+  .category-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  // Per-category label, also aligned with the gutter.
+  .row-head {
+    padding: 0 var(--gutter);
+    margin: 0 0 20px;
+
+    h2 {
+      font-size: clamp(18px, 2.4vw, 26px);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin: 0;
     }
   }
 
@@ -491,6 +563,18 @@ export default {
         padding: 0.65rem 1.1rem;
         font-size: 13px;
         gap: 6px;
+      }
+    }
+
+    .category-rows {
+      gap: 38px;
+    }
+
+    .row-head {
+      margin-bottom: 14px;
+
+      h2 {
+        font-size: 17px;
       }
     }
 

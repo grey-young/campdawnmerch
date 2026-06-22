@@ -9,9 +9,9 @@
     <div class="images">
       <div class="image-item" v-for="(image, index) in images" :key="index">
         <img :src="image.src" :alt="image.alt" />
-        <div class="img-hover">
-          <h3>{{ image.alt }}</h3>
-          <nuxt-link :to="image.to">
+        <div v-if="image.alt || image.to" class="img-hover">
+          <h3 v-if="image.alt">{{ image.alt }}</h3>
+          <nuxt-link v-if="image.to" :to="image.to">
             <button type="button">Shop Now</button>
           </nuxt-link>
         </div>
@@ -37,7 +37,7 @@ export default {
     };
   },
   mounted() {
-    this.loadFeatured();
+    this.loadFlyers();
 
     setTimeout(() => {
       const tl = this.$gsap.timeline({
@@ -56,19 +56,15 @@ export default {
     }, 3000);
   },
   methods: {
-    async loadFeatured() {
+    // Pull the admin-managed flyers and drop them into the hero strip. Falls
+    // back to the default images when no flyers have been uploaded yet.
+    async loadFlyers() {
       const { data, error } = await this.$supabase
-        .from("merch_products")
-        .select(
-          `
-          id, name, slug, is_featured, featured_order,
-          merch_product_images (image_url, is_main, sort_order)
-        `,
-        )
-        .eq("status", "active")
-        .eq("is_featured", true)
-        .order("featured_order", { ascending: true })
-        .order("created_at", { ascending: false })
+        .from("merch_flyers")
+        .select("image_url, title, link_url, sort_order")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
         .limit(DEFAULT_IMAGES.length);
 
       if (error) {
@@ -76,29 +72,14 @@ export default {
         return;
       }
 
-      const featured = data || [];
-      if (!featured.length) return;
+      const flyers = data || [];
+      if (!flyers.length) return;
 
-      const slots = DEFAULT_IMAGES.map((image) => ({ ...image }));
-
-      featured.forEach((product, index) => {
-        slots[index] = {
-          src: this.getMainImage(product),
-          alt: product.name,
-          to: `/products/${product.slug}`,
-        };
-      });
-
-      this.images = slots;
-    },
-
-    getMainImage(product) {
-      const images = product.merch_product_images || [];
-      if (!images.length) return "/shirt.jpg";
-      const mainImage = images.find((image) => image.is_main);
-      return mainImage
-        ? mainImage.image_url
-        : images.sort((a, b) => a.sort_order - b.sort_order)[0].image_url;
+      this.images = flyers.map((flyer) => ({
+        src: flyer.image_url,
+        alt: flyer.title || "",
+        to: flyer.link_url || "/products",
+      }));
     },
   },
 };

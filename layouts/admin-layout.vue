@@ -41,6 +41,7 @@
       <nav class="nav">
         <nuxt-link to="/admin/dashboard">Dashboard</nuxt-link>
         <nuxt-link to="/admin/products">Products</nuxt-link>
+        <nuxt-link to="/admin/flyers">Flyers</nuxt-link>
         <nuxt-link to="/admin/categories">Categories</nuxt-link>
         <nuxt-link to="/admin/orders">Orders</nuxt-link>
         <nuxt-link to="/admin/customers">Customers</nuxt-link>

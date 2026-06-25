@@ -1,22 +1,36 @@
 <template lang="html">
-  <div id="product-page">
-    <Header />
+  <div id="collections">
+    <!-- ambient field: glow + scanlines, no borders anywhere -->
+    <div class="ambient" aria-hidden="true">
+      <span class="glow glow-a" />
+      <span class="glow glow-b" />
+      <span class="scan" />
+    </div>
 
-    <div class="all-merch">
-      <div class="more-stuff">
-        <div>
-          <h2>All Merch</h2>
-          <p>{{ filteredProducts.length }} product(s) available</p>
+    <Header theme="dark" />
+
+    <main class="shell">
+      <!-- ── Masthead ──────────────────────────────────────────── -->
+      <header class="masthead">
+        <div class="lede">
+          <span class="eyebrow"><span class="dot" />CampDawn Drop Index</span>
+          <h1>The Collection</h1>
+          <p>{{ filteredProducts.length }} piece(s) in rotation</p>
         </div>
 
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Search for products..."
-        />
-      </div>
+        <div class="search">
+          <i class="bi bi-search"></i>
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Search the drop..."
+            aria-label="Search products"
+          />
+        </div>
+      </header>
 
-      <div v-if="categories.length" class="category-filter">
+      <!-- glass category pills -->
+      <nav v-if="categories.length" class="chips" aria-label="Categories">
         <button
           type="button"
           class="chip"
@@ -25,7 +39,6 @@
         >
           All
         </button>
-
         <button
           v-for="category in categories"
           :key="category.id"
@@ -36,42 +49,107 @@
         >
           {{ category.name }}
         </button>
+      </nav>
+
+      <!-- ── Loading / empty states ────────────────────────────── -->
+      <div v-if="loading" class="state">
+        <span class="spinner" />
+        <p>Loading the drop…</p>
       </div>
 
-      <div v-if="filteredProducts.length === 0" class="empty">
-        <h3>No merch found</h3>
+      <div v-else-if="filteredProducts.length === 0" class="state">
+        <h3>Nothing in this lane</h3>
         <p>Try another search or category.</p>
       </div>
 
-      <div v-else class="products-grid">
-        <nuxt-link
+      <!-- ── Filtered view: single results grid ────────────────── -->
+      <CapsuleRow
+        v-else-if="isFiltering"
+        layout="grid"
+        eyebrow="Results"
+        :title="searchTitle"
+        :description="`${filteredProducts.length} match(es) for your filter.`"
+      >
+        <ProductCard
           v-for="product in filteredProducts"
           :key="product.id"
-          :to="`/products/${product.slug}`"
-          class="product-link"
-        >
-          <Card
-            :name="product.name"
-            :price="`GH₵ ${formatMoney(product.price)}`"
-            :compare-price="product.compare_at_price"
-            :image="getMainImage(product)"
-          />
+          v-bind="cardProps(product)"
+          @add="(payload) => quickAdd(product, payload.size)"
+        />
+      </CapsuleRow>
 
-          <div class="product-meta">
-            <span>{{ product.merch_categories?.name }}</span>
-            <b>{{ getProductStock(product) }} in stock</b>
-          </div>
-        </nuxt-link>
+      <!-- ── Curated view: editorial capsules ──────────────────── -->
+      <div v-else class="capsules">
+        <CapsuleRow
+          v-if="newestDrops.length"
+          layout="carousel"
+          eyebrow="Just Landed"
+          title="Newest Drops"
+          description="Fresh off the press. The latest pieces to hit the CampDawn rotation."
+          :banner="bannerFor(0)"
+        >
+          <ProductCard
+            v-for="product in newestDrops"
+            :key="product.id"
+            v-bind="cardProps(product)"
+            @add="(payload) => quickAdd(product, payload.size)"
+          />
+        </CapsuleRow>
+
+        <CapsuleRow
+          v-if="coreCollection.length"
+          layout="grid"
+          eyebrow="Always On"
+          title="Core Collection"
+          description="The staples. Built to wear daily, designed to last the season."
+          :banner="bannerFor(1)"
+        >
+          <ProductCard
+            v-for="product in coreCollection"
+            :key="product.id"
+            v-bind="cardProps(product)"
+            @add="(payload) => quickAdd(product, payload.size)"
+          />
+        </CapsuleRow>
+
+        <CapsuleRow
+          v-if="limitedCollabs.length"
+          layout="carousel"
+          eyebrow="Limited"
+          title="Limited Collabs"
+          description="Capsule runs and featured pieces. When they're gone, they're gone."
+          :banner="bannerFor(2)"
+        >
+          <ProductCard
+            v-for="product in limitedCollabs"
+            :key="product.id"
+            v-bind="cardProps(product)"
+            @add="(payload) => quickAdd(product, payload.size)"
+          />
+        </CapsuleRow>
       </div>
-    </div>
+    </main>
 
     <Footer />
+
+    <!-- quick-add toast -->
+    <transition name="toast">
+      <div v-if="toast" class="toast" :class="{ 'is-error': toastError }">
+        <i :class="toastError ? 'bi bi-exclamation-circle' : 'bi bi-bag-check'"></i>
+        <span>{{ toast }}</span>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script>
+// Banner fallbacks (public/) used when no admin flyers are configured.
+const FALLBACK_BANNERS = ["/6.jpg", "/2.jpg", "/9.jpg"];
+const NEW_WINDOW_DAYS = 14;
+const LOW_STOCK_THRESHOLD = 5;
+
 export default {
-  name: "ProductsPage",
+  name: "CollectionsPage",
 
   data() {
     return {
@@ -79,48 +157,72 @@ export default {
       search: "",
       selectedCategory: "all",
       products: [],
+      banners: [],
+      toast: "",
+      toastError: false,
+      toastTimer: null,
     };
   },
 
   computed: {
     categories() {
       const unique = new Map();
-
       for (const product of this.products) {
         const category = product.merch_categories;
-
-        if (category && category.id) {
-          unique.set(category.id, category.name);
-        }
+        if (category && category.id) unique.set(category.id, category.name);
       }
-
       return Array.from(unique, ([id, name]) => ({ id, name }));
+    },
+
+    isFiltering() {
+      return this.search.trim() !== "" || this.selectedCategory !== "all";
+    },
+
+    searchTitle() {
+      if (this.selectedCategory !== "all") {
+        const match = this.categories.find(
+          (category) => category.id === this.selectedCategory,
+        );
+        if (match) return match.name;
+      }
+      return this.search.trim() ? `“${this.search.trim()}”` : "Filtered";
     },
 
     filteredProducts() {
       const term = this.search.toLowerCase();
-
       return this.products.filter((product) => {
         const matchesSearch =
           product.name.toLowerCase().includes(term) ||
           product.slug.toLowerCase().includes(term) ||
           (product.merch_categories?.name || "").toLowerCase().includes(term);
-
         const matchesCategory =
           this.selectedCategory === "all" ||
           product.merch_categories?.id === this.selectedCategory;
-
         return matchesSearch && matchesCategory;
       });
+    },
+
+    // Products fetched newest-first already; take the freshest slice.
+    newestDrops() {
+      return this.products.slice(0, 10);
+    },
+
+    coreCollection() {
+      return this.products.filter((product) => !product.is_featured);
+    },
+
+    limitedCollabs() {
+      return this.products.filter((product) => product.is_featured);
     },
   },
 
   async mounted() {
-    await this.getProducts();
+    await Promise.all([this.getProducts(), this.getBanners()]);
+    this.$nextTick(() => this.runAnimations());
+  },
 
-    this.$nextTick(() => {
-      this.runAnimations();
-    });
+  beforeUnmount() {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
   },
 
   methods: {
@@ -138,24 +240,10 @@ export default {
           compare_at_price,
           status,
           is_featured,
-          merch_categories (
-            id,
-            name,
-            slug
-          ),
-          merch_product_images (
-            id,
-            image_url,
-            is_main,
-            sort_order
-          ),
-          merch_product_variants (
-            id,
-            color,
-            size,
-            stock,
-            is_active
-          )
+          created_at,
+          merch_categories ( id, name, slug ),
+          merch_product_images ( id, image_url, is_main, sort_order ),
+          merch_product_variants ( id, color, size, stock, is_active )
         `,
         )
         .eq("status", "active")
@@ -171,348 +259,511 @@ export default {
       this.loading = false;
     },
 
-    getMainImage(product) {
-      const images = product.merch_product_images || [];
+    // Reuse the admin-managed flyers as editorial banner art.
+    async getBanners() {
+      const { data, error } = await this.$supabase
+        .from("merch_flyers")
+        .select("image_url, sort_order")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .limit(6);
 
-      if (!images.length) return "/shirt.jpg";
+      if (error) {
+        console.error(error.message);
+        return;
+      }
 
-      const mainImage = images.find((image) => image.is_main);
-
-      return mainImage
-        ? mainImage.image_url
-        : images.sort((a, b) => a.sort_order - b.sort_order)[0].image_url;
+      this.banners = (data || []).map((flyer) => flyer.image_url);
     },
 
-    getProductStock(product) {
-      const variants = product.merch_product_variants || [];
+    bannerFor(index) {
+      return this.banners[index] || FALLBACK_BANNERS[index] || FALLBACK_BANNERS[0];
+    },
 
-      return variants
+    // ── Card prop assembly ───────────────────────────────────
+    cardProps(product) {
+      const stock = this.totalStock(product);
+      return {
+        name: product.name,
+        price: `GH₵ ${this.formatMoney(product.price)}`,
+        comparePrice: product.compare_at_price,
+        image: this.getMainImage(product),
+        to: `/products/${product.slug}`,
+        badge: this.badgeFor(product, stock),
+        sizes: this.sizesFor(product),
+        soldOut: stock === 0,
+      };
+    },
+
+    badgeFor(product, stock) {
+      if (stock === 0) return { label: "Sold Out", variant: "sold-out" };
+
+      const created = product.created_at ? new Date(product.created_at) : null;
+      const isNew =
+        created &&
+        Date.now() - created.getTime() < NEW_WINDOW_DAYS * 86400000;
+      if (isNew) return { label: "New Drop", variant: "new" };
+
+      if (stock <= LOW_STOCK_THRESHOLD)
+        return { label: "Limited", variant: "limited" };
+
+      return null;
+    },
+
+    sizesFor(product) {
+      const sizes = (product.merch_product_variants || [])
+        .filter((variant) => variant.is_active && Number(variant.stock) > 0)
+        .map((variant) => variant.size)
+        .filter(Boolean);
+      return [...new Set(sizes)];
+    },
+
+    totalStock(product) {
+      return (product.merch_product_variants || [])
         .filter((variant) => variant.is_active)
         .reduce((sum, variant) => sum + Number(variant.stock || 0), 0);
+    },
+
+    getMainImage(product) {
+      const images = product.merch_product_images || [];
+      if (!images.length) return "/shirt.jpg";
+      const main = images.find((image) => image.is_main);
+      return main
+        ? main.image_url
+        : images.slice().sort((a, b) => a.sort_order - b.sort_order)[0]
+            .image_url;
     },
 
     formatMoney(value) {
       return Number(value || 0).toFixed(2);
     },
 
+    // ── Quick add from a card ────────────────────────────────
+    // Picks the best in-stock variant for the chosen size (most stock).
+    // When no size is given, falls back to the single best variant overall.
+    resolveVariant(product, size) {
+      const inStock = (product.merch_product_variants || []).filter(
+        (variant) => variant.is_active && Number(variant.stock) > 0,
+      );
+      const pool = size
+        ? inStock.filter((variant) => variant.size === size)
+        : inStock;
+      if (!pool.length) return null;
+      return pool.sort((a, b) => Number(b.stock) - Number(a.stock))[0];
+    },
+
+    async quickAdd(product, size) {
+      const variant = this.resolveVariant(product, size);
+      if (!variant) {
+        this.showToast("That option just sold out.", true);
+        return;
+      }
+
+      try {
+        const {
+          data: { user },
+        } = await this.$supabase.auth.getUser();
+
+        if (!user) {
+          useGuestCart().add(variant.id, 1, variant.stock);
+          this.showToast(`Added ${product.name} to bag.`);
+          return;
+        }
+
+        let cartId;
+        const { data: existingCart } = await this.$supabase
+          .from("merch_carts")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (existingCart) {
+          cartId = existingCart.id;
+        } else {
+          const { data: newCart, error } = await this.$supabase
+            .from("merch_carts")
+            .insert({ user_id: user.id })
+            .select("id")
+            .single();
+          if (error) throw error;
+          cartId = newCart.id;
+        }
+
+        const { data: existingItem } = await this.$supabase
+          .from("merch_cart_items")
+          .select("id, quantity")
+          .eq("cart_id", cartId)
+          .eq("variant_id", variant.id)
+          .maybeSingle();
+
+        if (existingItem) {
+          const next = Number(existingItem.quantity || 0) + 1;
+          if (next > variant.stock) {
+            this.showToast("Stock limit reached for that item.", true);
+            return;
+          }
+          const { error } = await this.$supabase
+            .from("merch_cart_items")
+            .update({ quantity: next })
+            .eq("id", existingItem.id);
+          if (error) throw error;
+        } else {
+          const { error } = await this.$supabase
+            .from("merch_cart_items")
+            .insert({ cart_id: cartId, variant_id: variant.id, quantity: 1 });
+          if (error) throw error;
+        }
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cart:updated"));
+        }
+        this.showToast(`Added ${product.name} to bag.`);
+      } catch (error) {
+        this.showToast(error.message || "Couldn't add to bag.", true);
+      }
+    },
+
+    showToast(message, isError = false) {
+      this.toast = message;
+      this.toastError = isError;
+      if (this.toastTimer) clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(() => (this.toast = ""), 2600);
+    },
+
     runAnimations() {
       if (!this.$gsap) return;
 
-      this.$gsap.set([".more-stuff h2", ".more-stuff p", ".more-stuff input"], {
+      this.$gsap.from(".masthead > *", {
         opacity: 0,
-        y: 30,
+        y: 26,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.12,
       });
 
-      this.$gsap.set(".product-link", {
-        opacity: 0,
-        y: 40,
-      });
-
-      const timeline = this.$gsap.timeline({
-        scrollTrigger: {
-          trigger: ".all-merch",
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      timeline
-        .to([".more-stuff h2", ".more-stuff p", ".more-stuff input"], {
-          opacity: 1,
-          y: 0,
+      this.$gsap.utils.toArray(".capsule").forEach((capsule) => {
+        this.$gsap.from(capsule, {
+          opacity: 0,
+          y: 40,
           duration: 0.8,
           ease: "power3.out",
-          stagger: 0.12,
-        })
-        .to(
-          ".product-link",
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.75,
-            ease: "power3.out",
-            stagger: 0.1,
+          scrollTrigger: {
+            trigger: capsule,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
           },
-          "-=0.35",
-        );
+        });
+      });
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-#product-page {
-  .all-merch {
-    width: 90%;
-    margin: 80px auto;
+// ── Tokens (mirrored from home hero + footer) ─────────────────
+$lime: #ffbf38;
+$ink: #131515;
+$plat: #f0f0ec;
 
-    .more-stuff {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 25px;
-      margin-bottom: 40px;
+#collections {
+  position: relative;
+  background: $ink;
+  min-height: 100vh;
+  overflow: hidden;
+  color: $plat;
+}
 
-      h2 {
-        font-size: 32px;
-        text-transform: uppercase;
-        margin: 0;
-      }
+// ── Ambient field ───────────────────────────────────────────
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 
-      p {
-        margin: 10px 0 0;
-        color: #777;
-        font-size: 15px;
-      }
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.5;
+  }
 
-      input {
-        padding: 0.8rem 1.5rem;
-        border: 1px solid black;
-        border-radius: 100px;
-        outline: none;
-        font-size: 16px;
-        width: 350px;
-      }
+  .glow-a {
+    top: -10%;
+    left: -8%;
+    width: 480px;
+    height: 480px;
+    background: rgba($lime, 0.12);
+  }
+
+  .glow-b {
+    bottom: -12%;
+    right: -10%;
+    width: 560px;
+    height: 560px;
+    background: rgba(8, 39, 81, 0.6);
+  }
+
+  .scan {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 3px,
+      rgba(255, 255, 255, 0.012) 4px
+    );
+  }
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  width: 90%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 60px 0 90px;
+}
+
+// ── Masthead ────────────────────────────────────────────────
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  margin-bottom: 30px;
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: $lime;
+    margin-bottom: 16px;
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $lime;
+      box-shadow: 0 0 10px 1px rgba($lime, 0.8);
+    }
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: $plat;
+  }
+
+  p {
+    margin: 12px 0 0;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    color: rgba($plat, 0.5);
+  }
+
+  // glass search field, no border
+  .search {
+    position: relative;
+    flex-shrink: 0;
+
+    i {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba($plat, 0.4);
+      font-size: 1rem;
     }
 
-    .category-filter {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 36px;
+    input {
+      width: 340px;
+      max-width: 100%;
+      padding: 0.95rem 1.4rem 0.95rem 3rem;
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      font-size: 15px;
+      font-family: inherit;
+      color: $plat;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+      transition: background 0.3s ease;
 
-      .chip {
-        border: 1px solid rgba(0, 0, 0, 0.18);
-        background: white;
-        color: #111;
-        border-radius: 999px;
-        padding: 0.65rem 1.25rem;
-        font-size: 14px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.2s ease;
-
-        &:hover {
-          border-color: #111;
-          transform: translateY(-2px);
-        }
-
-        &.active {
-          background: #111;
-          color: white;
-          border-color: #111;
-        }
-      }
-    }
-
-    .loading,
-    .empty {
-      min-height: 260px;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      border-radius: 30px;
-      background: #f6f2ec;
-
-      h3 {
-        margin: 0;
-        font-size: 26px;
+      &::placeholder {
+        color: rgba($plat, 0.4);
       }
 
-      p {
-        margin: 8px 0 0;
-        color: #777;
-      }
-    }
-
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 28px;
-      // Don't stretch cells: a stretched cell makes the card (height:100%) fill
-      // it and pushes the meta row into the next row, causing overlap.
-      align-items: start;
-    }
-
-    .product-link {
-      text-decoration: none;
-      color: inherit;
-      display: block;
-      transition: 0.3s ease;
-
-      &:hover {
-        transform: translateY(-6px);
-      }
-    }
-
-    .product-meta {
-      margin-top: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-
-      span,
-      b {
-        font-size: 12px;
-        font-weight: 800;
-        padding: 8px 11px;
-        border-radius: 999px;
-      }
-
-      span {
-        background: #f3eee6;
-        color: #111;
-      }
-
-      b {
-        background: #111;
-        color: white;
+      &:focus {
+        background: rgba(255, 255, 255, 0.08);
       }
     }
   }
 }
 
-@media (max-width: 1100px) {
-  #product-page {
-    .all-merch {
-      .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 24px;
-      }
+// ── Category pills ──────────────────────────────────────────
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 44px;
+
+  .chip {
+    border: none;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.62rem 1.2rem;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba($plat, 0.7);
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      color: $plat;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    // active = the lime spark
+    &.active {
+      background: $lime;
+      color: $ink;
+      box-shadow: 0 10px 26px -12px rgba($lime, 0.7);
     }
   }
 }
 
-@media (max-width: 900px) {
-  #product-page {
-    .all-merch {
-      margin: 60px auto;
+.capsules {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
 
-      .more-stuff {
-        gap: 20px;
+// ── States ──────────────────────────────────────────────────
+.state {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  text-align: center;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
-        h2 {
-          font-size: 28px;
-        }
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: $plat;
+  }
 
-        input {
-          width: 100%;
-        }
-      }
+  p {
+    margin: 0;
+    color: rgba($plat, 0.5);
+  }
 
-      .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      }
-    }
+  .spinner {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    border-top-color: $lime;
+    animation: spin 0.8s linear infinite;
   }
 }
 
-@media (max-width: 720px) {
-  #product-page {
-    .all-merch {
-      width: 95%;
-      margin: 50px auto;
-
-      .more-stuff {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-
-        h2 {
-          font-size: 26px;
-        }
-
-        p {
-          font-size: 14px;
-        }
-
-        input {
-          width: 100%;
-          padding: 0.75rem 1.2rem;
-          font-size: 15px;
-        }
-      }
-
-      .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 16px;
-      }
-
-      .product-meta {
-        flex-wrap: wrap;
-        gap: 8px;
-
-        span,
-        b {
-          flex: 1;
-          min-width: 100px;
-          font-size: 11px;
-          padding: 6px 9px;
-        }
-      }
-    }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@media (max-width: 480px) {
-  #product-page {
-    .all-merch {
-      width: 95%;
-      margin: 40px auto;
+// ── Toast ───────────────────────────────────────────────────
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: $ink;
+  background: $lime;
+  box-shadow: 0 20px 50px -18px rgba($lime, 0.7);
 
-      .more-stuff {
-        margin-bottom: 30px;
+  i {
+    font-size: 1.05rem;
+  }
 
-        h2 {
-          font-size: 22px;
-        }
+  &.is-error {
+    color: $plat;
+    background: rgba(40, 18, 18, 0.92);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 50px -18px rgba(0, 0, 0, 0.9);
+  }
+}
 
-        p {
-          font-size: 13px;
-        }
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
 
-        input {
-          padding: 0.65rem 1rem;
-          font-size: 14px;
-          border-radius: 8px;
-        }
-      }
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 16px);
+}
 
-      .loading,
-      .empty {
-        min-height: 200px;
+// ── Responsive ──────────────────────────────────────────────
+@media (max-width: 760px) {
+  .shell {
+    width: 92%;
+    padding: 40px 0 70px;
+  }
 
-        h3 {
-          font-size: 22px;
-        }
+  .masthead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
 
-        p {
-          font-size: 13px;
-        }
-      }
-
-      .products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
-
-      .product-link {
-        &:hover {
-          transform: translateY(-3px);
-        }
-      }
-
-      .product-meta {
-        gap: 6px;
-
-        span,
-        b {
-          font-size: 10px;
-          padding: 6px 8px;
-        }
-      }
+    .search input {
+      width: 100%;
     }
+  }
+
+  .chips {
+    margin-bottom: 30px;
+  }
+
+  .capsules {
+    gap: 28px;
   }
 }
 </style>

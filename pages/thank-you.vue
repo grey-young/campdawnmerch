@@ -14,7 +14,7 @@
       <div v-if="order" class="order-box">
         <div class="row">
           <span>Order number</span>
-          <b>{{ order.order_number || "—" }}</b>
+          <b>{{ order.order_number || "N/A" }}</b>
         </div>
         <div class="row">
           <span>Total</span>
@@ -94,22 +94,47 @@ export default {
 </script>
 
 <style scoped lang="scss">
+$lime: #ffbf38;
+$ink: #131515;
+$plat: #f0f0ec;
+
 .thanks-page {
   min-height: 100vh;
-  background: #f7f3ed;
-  color: #111;
+  background: $ink;
+  color: $plat;
   display: grid;
   place-items: center;
-  padding: 40px 0;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+
+  // Ambient lime glow behind the card.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    width: 520px;
+    height: 520px;
+    transform: translateX(-50%);
+    background: rgba($lime, 0.1);
+    filter: blur(130px);
+    pointer-events: none;
+  }
 }
 
 .thanks-wrap {
+  position: relative;
   width: min(560px, 92%);
-  background: white;
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 34px;
   padding: 48px 40px;
   text-align: center;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 40px 100px -40px rgba(0, 0, 0, 0.9);
 }
 
 .check {
@@ -117,12 +142,13 @@ export default {
   width: 72px;
   margin: 0 auto 24px;
   border-radius: 50%;
-  background: #111;
-  color: #f4d28b;
+  background: $lime;
+  color: $ink;
   display: grid;
   place-items: center;
   font-size: 34px;
   font-weight: 900;
+  box-shadow: 0 0 40px rgba($lime, 0.4);
 }
 
 .eyebrow {
@@ -131,7 +157,7 @@ export default {
   letter-spacing: 0.28em;
   text-transform: uppercase;
   font-weight: 900;
-  color: #8b6b3f;
+  color: $lime;
 }
 
 h1 {
@@ -139,26 +165,26 @@ h1 {
   font-size: clamp(30px, 6vw, 46px);
   line-height: 0.95;
   letter-spacing: -0.05em;
+  color: $plat;
 }
 
 .lead {
   margin: 0 auto 28px;
   max-width: 420px;
-  color: #777;
+  color: rgba($plat, 0.55);
   line-height: 1.6;
 }
 
 .order-box {
   text-align: left;
-  border: 1px solid #e4d8c9;
-  background: #fbf7f1;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 22px;
   padding: 20px 22px;
   margin-bottom: 28px;
 
   &.muted {
     text-align: center;
-    color: #999;
+    color: rgba($plat, 0.5);
   }
 
   .row {
@@ -168,26 +194,27 @@ h1 {
     padding: 10px 0;
 
     & + .row {
-      border-top: 1px solid #eaded0;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     span {
-      color: #888;
+      color: rgba($plat, 0.5);
       font-size: 14px;
     }
 
     b {
       font-size: 15px;
+      color: $plat;
     }
   }
 
   .status.paid {
-    color: #0f7a35;
+    color: #74e08a;
   }
 
   .status.unpaid,
   .status.pending {
-    color: #8b6b3f;
+    color: #ffd66b;
   }
 }
 
@@ -202,16 +229,28 @@ h1 {
     padding: 15px 22px;
     border-radius: 999px;
     font-weight: 900;
+    transition:
+      transform 0.25s ease,
+      background 0.25s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
   }
 
   .primary {
-    background: #111;
-    color: white;
+    background: $lime;
+    color: $ink;
+    box-shadow: 0 16px 38px -16px rgba($lime, 0.7);
   }
 
   .ghost {
-    background: #f4d28b;
-    color: #111;
+    background: rgba(255, 255, 255, 0.06);
+    color: $plat;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
   }
 }
 </style>

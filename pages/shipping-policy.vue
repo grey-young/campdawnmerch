@@ -12,7 +12,7 @@
     <h2>1. Order Processing Times</h2>
     <ul>
       <li>
-        Orders are processed within <strong>1–3 business days</strong> after
+        Orders are processed within <strong>1 to 3 business days</strong> after
         payment is confirmed.
       </li>
       <li>
@@ -28,13 +28,13 @@
     <p>Estimated delivery times after dispatch:</p>
     <ul>
       <li>
-        <strong>Within Accra (Greater Accra):</strong> 1–3 business days.
+        <strong>Within Accra (Greater Accra):</strong> 1 to 3 business days.
       </li>
       <li>
-        <strong>Other regions in Ghana:</strong> 3–7 business days.
+        <strong>Other regions in Ghana:</strong> 3 to 7 business days.
       </li>
       <li>
-        <strong>International orders:</strong> 7–21 business days, depending on
+        <strong>International orders:</strong> 7 to 21 business days, depending on
         the destination and customs clearance.
       </li>
     </ul>

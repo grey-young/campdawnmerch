@@ -211,7 +211,7 @@ export default {
           font-size: 0.9rem;
 
           i {
-            color: #c8f135;
+            color: #ffbf38;
             font-size: 1rem;
           }
 
@@ -245,7 +245,7 @@ export default {
               transform 0.3s ease;
 
             &:hover {
-              background: #c8f135;
+              background: #ffbf38;
               color: #000;
               transform: translateY(-3px);
             }

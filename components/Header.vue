@@ -1,5 +1,11 @@
 <template>
-  <header>
+  <header
+    :class="{
+      'theme-dark': theme === 'dark',
+      scrolled,
+      'nav-hidden': navHidden,
+    }"
+  >
     <nav>
       <nuxt-link to="/" class="logo-link">
         <img src="/logo.png" alt="campdawn merch logo" id="logo" />
@@ -49,6 +55,13 @@
         </li>
       </ul>
     </nav>
+
+    <!-- Reading progress for the page -->
+    <span
+      class="scroll-progress"
+      :style="{ transform: `scaleX(${progress})` }"
+      aria-hidden="true"
+    ></span>
   </header>
 </template>
 
@@ -56,12 +69,26 @@
 export default {
   name: "Header",
 
+  props: {
+    // "dark" (default) is the sticky glassmorphic bar used across the dark
+    // storefront. "light" keeps the original white header if ever needed.
+    theme: {
+      type: String,
+      default: "dark",
+      validator: (value) => ["light", "dark"].includes(value),
+    },
+  },
+
   data() {
     return {
       user: null,
       profile: null,
       isProfileOpen: false,
       cartCount: 0,
+      scrolled: false,
+      navHidden: false,
+      progress: 0,
+      lastScroll: 0,
     };
   },
 
@@ -77,6 +104,7 @@ export default {
     await this.refreshCartCount();
     document.addEventListener("click", this.handleOutsideClick);
     window.addEventListener("cart:updated", this.refreshCartCount);
+    window.addEventListener("scroll", this.onScroll, { passive: true });
     this.$nextTick(() => {
       if (this.$gsap) {
         this.$gsap.from("header nav > *", {
@@ -93,6 +121,7 @@ export default {
   beforeUnmount() {
     document.removeEventListener("click", this.handleOutsideClick);
     window.removeEventListener("cart:updated", this.refreshCartCount);
+    window.removeEventListener("scroll", this.onScroll);
   },
 
   methods: {
@@ -142,6 +171,21 @@ export default {
         (sum, item) => sum + Number(item.quantity || 0),
         0,
       );
+    },
+
+    onScroll() {
+      const y = window.scrollY || 0;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      this.progress = max > 0 ? Math.min(y / max, 1) : 0;
+      this.scrolled = y > 12;
+      // Hide on scroll-down (past the fold), reveal on scroll-up.
+      if (y > this.lastScroll && y > 140) {
+        this.navHidden = true;
+        this.isProfileOpen = false;
+      } else {
+        this.navHidden = false;
+      }
+      this.lastScroll = y;
     },
 
     toggleProfileMenu() {
@@ -286,7 +330,7 @@ header {
 
         .login-btn {
           background: transparent;
-          color: #111;
+          color: #fff;
           font-size: 1rem;
           padding: 0.9rem 1.1rem;
         }
@@ -305,6 +349,133 @@ header {
           }
         }
       }
+    }
+  }
+}
+
+// ── Dark glass variant (shop surface) ─────────────────────────
+// Mirrors the home hero / footer palette so the header reads as the top
+// edge of one continuous dark surface rather than a separate white bar.
+$lime: #ffbf38;
+$ink: #131515;
+$plat: #f0f0ec;
+
+header.theme-dark {
+  position: sticky;
+  top: 0;
+  background: rgba(19, 21, 21, 0.62);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  // Soft layer drop instead of a divider line.
+  box-shadow: 0 18px 40px -34px rgba(0, 0, 0, 0.9);
+  will-change: transform;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s ease,
+    height 0.4s ease,
+    box-shadow 0.4s ease;
+
+  // Condense once the page scrolls.
+  &.scrolled {
+    height: 8vh;
+    background: rgba(19, 21, 21, 0.78);
+    box-shadow: 0 18px 50px -30px rgba(0, 0, 0, 0.95);
+  }
+
+  // Slide away on scroll-down, return on scroll-up.
+  &.nav-hidden {
+    transform: translateY(-100%);
+  }
+
+  // Reading-progress meter pinned to the header's bottom edge.
+  .scroll-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, $lime, rgba($lime, 0.4));
+    box-shadow: 0 0 12px rgba($lime, 0.6);
+    will-change: transform;
+  }
+
+  .main-nav li a {
+    color: rgba($plat, 0.8);
+
+    &::after {
+      background: $lime;
+    }
+
+    &:hover,
+    &.router-link-active {
+      color: $plat;
+    }
+  }
+
+  .nav-link li a i {
+    color: $plat;
+  }
+
+  .cart-badge {
+    background: $lime;
+    color: $ink;
+  }
+
+  .login-btn {
+    color: rgba($plat, 0.85);
+
+    &:hover {
+      color: $plat;
+    }
+  }
+
+  // The lime spark CTA.
+  .nav-btn {
+    background: $lime;
+    color: $ink;
+  }
+
+  .profile-btn {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: $plat;
+  }
+
+  // Glassmorphic profile dropdown to match the dark shell.
+  .dropdown {
+    background: rgba(19, 21, 21, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: none;
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.95);
+
+    .user-info {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+      strong {
+        color: $plat;
+      }
+
+      small {
+        color: rgba($plat, 0.5);
+      }
+    }
+
+    a,
+    button {
+      color: rgba($plat, 0.85);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: $plat;
+      }
+    }
+
+    button {
+      color: #ff8d8d;
     }
   }
 }

@@ -40,8 +40,14 @@ useHead({ title: `${heading.value} | CampDawn Merch` });
 </script>
 
 <style scoped lang="scss">
-$black: #0a0a0a;
-$accent: #c8f135;
+$black: #131515;
+$accent: #ffbf38;
+$plat: #f0f0ec;
+
+.error-page {
+  background: $black;
+  min-height: 100vh;
+}
 
 .error-main {
   min-height: 60vh;
@@ -58,18 +64,20 @@ $accent: #c8f135;
     font-size: clamp(70px, 18vw, 140px);
     font-weight: 800;
     line-height: 1;
-    color: $black;
+    color: $plat;
     letter-spacing: -0.04em;
+    text-shadow: 0 0 60px rgba($accent, 0.25);
   }
 
   h1 {
     font-size: clamp(22px, 4vw, 32px);
     text-transform: uppercase;
     margin: 12px 0 14px;
+    color: $plat;
   }
 
   p {
-    color: #666;
+    color: rgba($plat, 0.55);
     line-height: 1.7;
     margin: 0 0 30px;
   }
@@ -88,23 +96,33 @@ $accent: #c8f135;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
-      transition: transform 0.2s ease;
+      transition:
+        transform 0.25s ease,
+        background 0.25s ease;
 
       &:hover {
         transform: translateY(-2px);
       }
     }
 
+    // The lime spark CTA.
     .primary {
-      background: $black;
-      color: #fff;
+      background: $accent;
+      color: $black;
       border: none;
+      box-shadow: 0 14px 34px -14px rgba($accent, 0.7);
     }
 
     .secondary {
-      background: #fff;
-      color: $black;
-      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: $plat;
+      border: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.09);
+      }
     }
   }
 }

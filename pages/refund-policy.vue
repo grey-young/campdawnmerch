@@ -72,7 +72,7 @@
         payment provider, <strong>Paystack</strong>.
       </li>
       <li>
-        Refunds are typically processed within <strong>5–10 business days</strong>
+        Refunds are typically processed within <strong>5 to 10 business days</strong>
         after approval. The time it takes to appear in your account depends on
         your bank or card issuer.
       </li>

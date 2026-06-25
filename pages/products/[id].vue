@@ -27,6 +27,7 @@
       </div>
 
       <div class="details">
+        <span class="hud-label pdp-eyebrow"><span class="idx">//</span> Product</span>
         <h1 class="name field">{{ product.name }}</h1>
 
         <div class="field price-field">
@@ -509,6 +510,8 @@ export default {
 <style lang="scss" scoped>
 main {
   min-height: 100vh;
+  background: #131515;
+  color: #f0f0ec;
 
   .loading {
     min-height: 70vh;
@@ -516,6 +519,7 @@ main {
     place-items: center;
     font-size: 20px;
     font-weight: 800;
+    color: rgba(240, 240, 236, 0.6);
   }
 
   .container {
@@ -542,7 +546,7 @@ main {
         width: 90%;
         overflow: hidden;
         border-radius: 18px;
-        background: #f3eee6;
+        background: rgba(255, 255, 255, 0.04);
 
         img {
           height: 100%;
@@ -565,7 +569,7 @@ main {
           border: 2px solid transparent;
           border-radius: 14px;
           overflow: hidden;
-          background: #f3eee6;
+          background: rgba(255, 255, 255, 0.04);
           cursor: pointer;
           transition: 0.2s ease;
 
@@ -581,7 +585,7 @@ main {
           }
 
           &.active {
-            border-color: #111;
+            border-color: #ffbf38;
           }
         }
       }
@@ -590,6 +594,10 @@ main {
     .details {
       width: 100%;
       margin: auto;
+
+      .pdp-eyebrow {
+        margin-bottom: 14px;
+      }
 
       .name {
         font-size: clamp(34px, 5vw, 58px);
@@ -606,7 +614,7 @@ main {
 
         .compare {
           font-size: 22px;
-          color: #999;
+          color: rgba(240, 240, 236, 0.4);
           text-decoration: line-through;
           font-weight: 600;
         }
@@ -624,7 +632,7 @@ main {
           font-size: 0.85rem;
           text-transform: uppercase;
           letter-spacing: 0.16em;
-          color: #777;
+          color: rgba(240, 240, 236, 0.5);
         }
       }
 
@@ -655,26 +663,27 @@ main {
         }
 
         &.active {
-          border-color: #111;
+          border-color: #ffbf38;
           transform: scale(1.08);
+          box-shadow: 0 0 0 3px rgba(255, 191, 56, 0.2);
         }
 
         &.light {
-          border-color: #ddd;
+          border-color: rgba(255, 255, 255, 0.25);
 
           &.active {
-            border-color: #111;
+            border-color: #ffbf38;
           }
         }
       }
 
       .selected-text {
         font-size: 14px;
-        color: #777;
+        color: rgba(240, 240, 236, 0.5);
         margin: 0;
 
         b {
-          color: #111;
+          color: #f0f0ec;
         }
       }
 
@@ -684,24 +693,26 @@ main {
         gap: 10px;
 
         button {
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: white;
-          color: #111;
+          border: none;
+          background: rgba(255, 255, 255, 0.06);
+          color: #f0f0ec;
           border-radius: 999px;
           padding: 0.9rem 1.25rem;
           font-weight: 800;
           cursor: pointer;
-          transition: 0.25s ease;
+          transition:
+            background 0.25s ease,
+            color 0.25s ease,
+            transform 0.25s ease;
 
           &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.1);
           }
 
           &.active {
-            background: #111;
-            color: white;
-            border-color: #111;
+            background: #ffbf38;
+            color: #131515;
           }
         }
       }
@@ -710,11 +721,11 @@ main {
         p {
           margin: 0;
           font-size: 15px;
-          color: #555;
+          color: rgba(240, 240, 236, 0.55);
         }
 
         b {
-          color: #111;
+          color: #f0f0ec;
         }
       }
     }
@@ -732,21 +743,22 @@ main {
       display: flex;
       align-items: center;
       gap: 20px;
-      background: #fbfbfb;
+      background: rgba(255, 255, 255, 0.05);
       padding: 0.8rem 1rem;
       border-radius: 999px;
       width: fit-content;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
       i {
         font-size: 20px;
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 50%;
+        color: #f0f0ec;
         transition: background 0.2s ease;
 
         &:hover {
-          background: rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.1);
         }
       }
 
@@ -755,27 +767,32 @@ main {
         min-width: 30px;
         text-align: center;
         font-weight: 600;
+        color: #f0f0ec;
       }
     }
 
+    // The lime spark CTA.
     .add-to-cart {
-      background-color: #111;
+      background-color: #ffbf38;
       border: none;
       padding: 1rem 2rem;
-      color: white;
+      color: #131515;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 800;
       border-radius: 999px;
-      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.15);
-      transition: 0.25s ease;
+      box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
+      transition:
+        transform 0.25s ease,
+        filter 0.25s ease;
 
       &:hover {
         transform: translateY(-2px);
-        background-color: #000;
+        filter: brightness(1.06);
       }
 
       &:disabled {
-        opacity: 0.45;
+        opacity: 0.4;
         cursor: not-allowed;
         transform: none;
       }
@@ -787,13 +804,13 @@ main {
       font-weight: 800;
 
       &.error {
-        background: #ffe8e8;
-        color: #b00020;
+        background: rgba(255, 141, 141, 0.12);
+        color: #ff8d8d;
       }
 
       &.success {
-        background: #e7f8ec;
-        color: #0f7a35;
+        background: rgba(116, 224, 138, 0.12);
+        color: #74e08a;
       }
     }
   }

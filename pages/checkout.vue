@@ -3,7 +3,7 @@
     <section class="checkout-wrap">
       <div class="page-head" ref="pageHead">
         <div>
-          <p>Checkout</p>
+          <p class="hud-label">Checkout</p>
           <h1>Complete order</h1>
           <span v-if="user">Signed in checkout</span>
           <span v-else>Guest checkout</span>
@@ -819,7 +819,7 @@ export default {
           this.placingOrder = false;
           this.markOrderCancelled(order, reference);
           this.errorMessage =
-            "Payment cancelled. This order was not placed — you can try again.";
+            "Payment cancelled. This order was not placed, you can try again.";
         },
         onError: (error) => {
           this.placingOrder = false;
@@ -927,8 +927,8 @@ export default {
 <style scoped lang="scss">
 .checkout-page {
   min-height: 100vh;
-  background: #f7f3ed;
-  color: #111;
+  background: #131515;
+  color: #f0f0ec;
 }
 
 .checkout-wrap {
@@ -950,7 +950,7 @@ export default {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     font-weight: 900;
-    color: #8b6b3f;
+    color: #ffbf38;
   }
 
   h1 {
@@ -958,35 +958,47 @@ export default {
     font-size: clamp(42px, 7vw, 82px);
     line-height: 0.9;
     letter-spacing: -0.06em;
+    color: #f0f0ec;
   }
 
   span {
     display: block;
     margin-top: 10px;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
     font-weight: 700;
   }
 
   a {
     text-decoration: none;
-    color: #111;
-    background: white;
+    color: #f0f0ec;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 800;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06);
+    transition:
+      background 0.25s ease,
+      transform 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-2px);
+    }
   }
 }
 
 .state-box {
   min-height: 360px;
   border-radius: 34px;
-  background: white;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: grid;
   place-items: center;
   text-align: center;
   padding: 40px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.05);
+  color: #f0f0ec;
 }
 
 .checkout-layout {
@@ -1002,15 +1014,20 @@ export default {
 }
 
 .card {
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 30px;
   padding: 26px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 26px 60px -40px rgba(0, 0, 0, 0.95);
 
   h2 {
     margin: 0 0 20px;
     font-size: 25px;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 }
 
@@ -1034,29 +1051,43 @@ export default {
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   input,
   select,
   textarea {
     width: 100%;
-    border: 1px solid #e4d8c9;
-    background: #fbf7f1;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #f0f0ec;
     border-radius: 17px;
     padding: 15px 16px;
     outline: none;
     font-size: 15px;
+    box-shadow: 0 0 0 1px transparent;
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: rgba(240, 240, 236, 0.35);
+    }
 
     &:focus {
-      border-color: #111;
-      background: white;
+      box-shadow: 0 0 0 1px rgba(255, 191, 56, 0.6);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     &:disabled {
-      opacity: 0.6;
+      opacity: 0.45;
       cursor: not-allowed;
     }
+  }
+
+  // Native select dropdown stays readable on its own popup.
+  select option {
+    color: #111;
   }
 
   textarea {
@@ -1068,12 +1099,22 @@ export default {
 .card > textarea {
   width: 100%;
   min-height: 120px;
-  border: 1px solid #e4d8c9;
-  background: #fbf7f1;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f0f0ec;
   border-radius: 17px;
   padding: 15px 16px;
   outline: none;
   resize: vertical;
+
+  &::placeholder {
+    color: rgba(240, 240, 236, 0.35);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 1px rgba(255, 191, 56, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .payment-options {
@@ -1082,53 +1123,69 @@ export default {
   gap: 12px;
 
   button {
-    border: 1px solid #e4d8c9;
-    background: #fbf7f1;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 22px;
     padding: 18px;
     text-align: left;
     cursor: pointer;
+    box-shadow: 0 0 0 1px transparent;
+    transition:
+      background 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.25s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
 
     span {
       display: block;
       font-weight: 950;
-      color: #111;
+      color: #f0f0ec;
       margin-bottom: 7px;
     }
 
     b {
-      color: #777;
+      color: rgba(240, 240, 236, 0.5);
       font-size: 13px;
     }
 
+    // Active = lime-tinted glass with a lime ring.
     &.active {
-      background: #111;
-      border-color: #111;
+      background: rgba(255, 191, 56, 0.1);
+      box-shadow: 0 0 0 1px rgba(255, 191, 56, 0.6);
 
       span {
-        color: white;
+        color: #f0f0ec;
       }
 
       b {
-        color: #f4d28b;
+        color: #ffbf38;
       }
     }
   }
 }
 
+// Elevated glass summary.
 .summary {
   position: sticky;
   top: 24px;
-  background: #111;
-  color: white;
+  background: rgba(8, 39, 81, 0.34);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #f0f0ec;
   border-radius: 34px;
   padding: 26px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.07) inset,
+    0 30px 70px -40px rgba(0, 0, 0, 0.95);
 
   h2 {
     margin: 0 0 20px;
     font-size: 28px;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 }
 
@@ -1149,22 +1206,24 @@ export default {
     width: 58px;
     object-fit: cover;
     border-radius: 16px;
-    background: #eee3d2;
+    background: rgba(255, 255, 255, 0.06);
   }
 
   h3 {
     margin: 0;
     font-size: 14px;
+    color: #f0f0ec;
   }
 
   p {
     margin: 5px 0 0;
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
     font-size: 12px;
   }
 
   b {
     font-size: 13px;
+    color: #f0f0ec;
   }
 }
 
@@ -1174,14 +1233,14 @@ export default {
   label {
     display: block;
     margin-bottom: 10px;
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
     font-size: 13px;
     font-weight: 900;
   }
 
   p {
     margin: 10px 0 0;
-    color: #f4d28b;
+    color: #ffbf38;
     font-size: 13px;
     font-weight: 800;
   }
@@ -1198,16 +1257,27 @@ export default {
     outline: none;
     padding: 13px 14px;
     border-radius: 14px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #f0f0ec;
+
+    &::placeholder {
+      color: rgba(240, 240, 236, 0.35);
+    }
   }
 
   button {
     border: none;
-    background: #f4d28b;
-    color: #111;
+    background: #ffbf38;
+    color: #131515;
     padding: 13px 14px;
     border-radius: 14px;
     font-weight: 900;
     cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+      filter: brightness(1.06);
+    }
   }
 }
 
@@ -1215,7 +1285,7 @@ export default {
   margin-top: 10px;
   border: none;
   background: transparent;
-  color: white;
+  color: rgba(240, 240, 236, 0.7);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -1226,14 +1296,14 @@ export default {
   justify-content: space-between;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
   span {
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   b {
-    color: white;
+    color: #f0f0ec;
   }
 }
 
@@ -1244,30 +1314,40 @@ export default {
   span,
   b {
     font-size: 22px;
-    color: #f4d28b;
+    color: #ffbf38;
   }
 }
 
+// The lime spark CTA.
 .place-order {
   width: 100%;
   margin-top: 18px;
   border: none;
-  background: white;
-  color: #111;
+  background: #ffbf38;
+  color: #131515;
   padding: 16px 18px;
   border-radius: 999px;
   font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+  }
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
 
 .hint {
   margin: 14px 0 0;
-  color: #aaa;
+  color: rgba(240, 240, 236, 0.45);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -1280,16 +1360,18 @@ export default {
   padding: 14px 16px;
   border-radius: 16px;
   font-weight: 900;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
 
   &.error {
-    background: #ffe8e8;
-    color: #b00020;
+    background: rgba(255, 141, 141, 0.16);
+    color: #ff8d8d;
   }
 
   &.success {
-    background: #e7f8ec;
-    color: #0f7a35;
+    background: rgba(116, 224, 138, 0.16);
+    color: #74e08a;
   }
 }
 

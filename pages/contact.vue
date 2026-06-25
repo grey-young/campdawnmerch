@@ -2,145 +2,111 @@
   <div class="contact-page">
     <Header />
 
-    <section class="contact-hero">
-      <div class="inner">
-        <div class="tag">Get in touch</div>
-        <h1>Contact {{ b.tradingName }}</h1>
-        <p>
-          Have a question about an order, sizing, shipping, or a return? Reach
-          the {{ b.tradingName }} team using the details below, or send us a
-          message. We usually reply within one business day.
+    <!-- ── Hero ──────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-ambient" aria-hidden="true">
+        <span class="glow" />
+        <span class="scan" />
+      </div>
+
+      <div class="hero-inner">
+        <span class="hud-label" v-reveal><span class="idx">//</span> Contact</span>
+        <h1 class="kinetic">
+          <span class="line" v-reveal="60">Let's</span>
+          <span class="line" v-reveal="140">talk <em>merch.</em></span>
+        </h1>
+        <p class="lead" v-reveal="220">
+          Questions about an order, sizing, shipping or a return? Reach the
+          {{ b.tradingName }} team. We usually reply within one business day.
         </p>
       </div>
     </section>
 
+    <!-- ── Body ──────────────────────────────────────────────── -->
     <section class="contact-main">
-      <div class="inner">
-        <!-- Business details -->
-        <aside class="details">
-          <h2>Business details</h2>
-
-          <div class="detail">
-            <span class="label">Business name</span>
-            <p>{{ b.legalName }}</p>
-            <small>Trading as {{ b.tradingName }}</small>
+      <!-- Channel cards -->
+      <aside class="channels">
+        <a class="channel hud-frame" :href="b.emailHref" v-reveal>
+          <i class="bi bi-envelope"></i>
+          <div>
+            <span class="lbl">Email</span>
+            <b>{{ b.email }}</b>
           </div>
+          <i class="bi bi-arrow-up-right go"></i>
+        </a>
 
-          <div class="detail">
-            <span class="label">Email</span>
-            <p>
-              <a :href="b.emailHref">{{ b.email }}</a>
-            </p>
+        <a class="channel hud-frame" :href="b.phoneHref" v-reveal="90">
+          <i class="bi bi-telephone"></i>
+          <div>
+            <span class="lbl">Phone / WhatsApp</span>
+            <b>{{ b.phone }}</b>
           </div>
+          <i class="bi bi-arrow-up-right go"></i>
+        </a>
 
-          <div class="detail">
-            <span class="label">Phone / WhatsApp</span>
-            <p>
-              <a :href="b.phoneHref">{{ b.phone }}</a>
-            </p>
+        <div class="channel static" v-reveal="180">
+          <i class="bi bi-geo-alt"></i>
+          <div>
+            <span class="lbl">Find us</span>
+            <b>{{ b.address.full }}</b>
           </div>
-
-          <div class="detail">
-            <span class="label">Address</span>
-            <p>{{ b.address.full }}</p>
-          </div>
-
-          <div class="detail">
-            <span class="label">Follow us</span>
-            <div class="socials">
-              <a
-                :href="b.socials.instagram"
-                target="_blank"
-                rel="noopener"
-                title="Instagram"
-              >
-                <i class="bi bi-instagram"></i>
-              </a>
-              <a
-                :href="b.socials.twitter"
-                target="_blank"
-                rel="noopener"
-                title="X (Twitter)"
-              >
-                <i class="bi bi-twitter-x"></i>
-              </a>
-              <a
-                :href="b.socials.tiktok"
-                target="_blank"
-                rel="noopener"
-                title="TikTok"
-              >
-                <i class="bi bi-tiktok"></i>
-              </a>
-              <a :href="b.emailHref" title="Email">
-                <i class="bi bi-envelope"></i>
-              </a>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Contact form -->
-        <div class="form-card">
-          <h2>Send a message</h2>
-
-          <form @submit.prevent="submit">
-            <div class="row">
-              <div class="field">
-                <label for="name">Name</label>
-                <input
-                  id="name"
-                  v-model.trim="form.name"
-                  type="text"
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-
-              <div class="field">
-                <label for="email">Email</label>
-                <input
-                  id="email"
-                  v-model.trim="form.email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="subject">Subject</label>
-              <input
-                id="subject"
-                v-model.trim="form.subject"
-                type="text"
-                placeholder="What is this about?"
-                required
-              />
-            </div>
-
-            <div class="field">
-              <label for="message">Message</label>
-              <textarea
-                id="message"
-                v-model.trim="form.message"
-                rows="6"
-                placeholder="Tell us how we can help..."
-                required
-              ></textarea>
-            </div>
-
-            <button type="submit" class="submit-btn">Send message</button>
-
-            <p v-if="error" class="note error">{{ error }}</p>
-            <p v-if="sent" class="note success">
-              Thanks! Your email app should open with your message ready to
-              send. If it doesn’t, email us directly at
-              <a :href="b.emailHref">{{ b.email }}</a
-              >.
-            </p>
-          </form>
         </div>
+
+        <div class="socials-card" v-reveal="260">
+          <span class="lbl">Follow the drop</span>
+          <div class="socials">
+            <a :href="b.socials.instagram" target="_blank" rel="noopener" title="Instagram">
+              <i class="bi bi-instagram"></i>
+            </a>
+            <a :href="b.socials.twitter" target="_blank" rel="noopener" title="X (Twitter)">
+              <i class="bi bi-twitter-x"></i>
+            </a>
+            <a :href="b.socials.tiktok" target="_blank" rel="noopener" title="TikTok">
+              <i class="bi bi-tiktok"></i>
+            </a>
+            <a :href="b.emailHref" title="Email">
+              <i class="bi bi-envelope"></i>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Form panel -->
+      <div class="form-card hud-frame" v-reveal="120">
+        <span class="hud-label"><span class="idx">→</span> Send a message</span>
+
+        <form @submit.prevent="submit">
+          <div class="row">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" v-model.trim="form.name" type="text" placeholder="Your full name" required />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" v-model.trim="form.email" type="email" placeholder="you@example.com" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="subject">Subject</label>
+            <input id="subject" v-model.trim="form.subject" type="text" placeholder="What is this about?" required />
+          </div>
+
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" v-model.trim="form.message" rows="6" placeholder="Tell us how we can help..." required></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn" v-magnetic="0.25">
+            Send message <i class="bi bi-send"></i>
+          </button>
+
+          <p v-if="error" class="note error">{{ error }}</p>
+          <p v-if="sent" class="note success">
+            Thanks! Your email app should open with your message ready to send.
+            If it doesn't, email us at <a :href="b.emailHref">{{ b.email }}</a>.
+          </p>
+        </form>
       </div>
     </section>
 
@@ -186,167 +152,260 @@ const submit = () => {
 </script>
 
 <style scoped lang="scss">
-$black: #0a0a0a;
-$accent: #c8f135;
-$cream: #f6f2ec;
+$lime: #ffbf38;
+$ink: #131515;
+$plat: #f0f0ec;
 
-.contact-hero {
-  background: $black;
-  color: #fff;
-  padding: 70px 0 56px;
+.contact-page {
+  background: $ink;
+  min-height: 100vh;
+  overflow: hidden;
+}
 
-  .inner {
+// ── Hero ─────────────────────────────────────────────────────
+.hero {
+  position: relative;
+  padding: 90px 0 60px;
+  overflow: hidden;
+
+  .hero-ambient {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    .glow {
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 560px;
+      height: 560px;
+      border-radius: 50%;
+      background: rgba($lime, 0.1);
+      filter: blur(130px);
+    }
+
+    .scan {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.013) 3px,
+        rgba(255, 255, 255, 0.013) 4px
+      );
+    }
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
     width: 90%;
     max-width: 1100px;
     margin: 0 auto;
   }
 
-  .tag {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+  .kinetic {
+    margin: 20px 0 0;
+    font-size: clamp(2.6rem, 8vw, 6rem);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
     text-transform: uppercase;
-    color: $accent;
-    border: 1px solid rgba($accent, 0.4);
-    padding: 5px 12px;
-    border-radius: 2px;
-    margin-bottom: 22px;
-  }
+    color: $plat;
 
-  h1 {
-    font-size: clamp(30px, 5vw, 48px);
-    text-transform: uppercase;
-    line-height: 1.1;
-    margin: 0 0 18px;
-  }
-
-  p {
-    max-width: 620px;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0;
-  }
-}
-
-.contact-main {
-  padding: 56px 0 80px;
-
-  .inner {
-    width: 90%;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 0.85fr 1.15fr;
-    gap: 50px;
-    align-items: start;
-  }
-
-  h2 {
-    font-size: 20px;
-    text-transform: uppercase;
-    margin: 0 0 24px;
-  }
-}
-
-.details {
-  .detail {
-    margin-bottom: 24px;
-
-    .label {
+    .line {
       display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #999;
-      margin-bottom: 6px;
     }
 
-    p {
-      margin: 0;
-      font-size: 16px;
-      color: #111;
-      line-height: 1.5;
+    em {
+      font-style: normal;
+      color: $lime;
     }
+  }
 
-    small {
-      color: #777;
-    }
+  .lead {
+    margin: 24px 0 0;
+    max-width: 540px;
+    font-size: clamp(1rem, 1.4vw, 1.1rem);
+    line-height: 1.7;
+    color: rgba($plat, 0.6);
+  }
+}
 
-    a {
-      color: #111;
-      text-decoration: underline;
-      text-decoration-color: $accent;
-      text-underline-offset: 3px;
+// ── Body ─────────────────────────────────────────────────────
+.contact-main {
+  width: 90%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 0 90px;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.channels {
+  display: grid;
+  gap: 14px;
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  transition:
+    background 0.35s ease,
+    transform 0.35s ease;
+
+  > i:first-child {
+    font-size: 1.4rem;
+    color: $lime;
+    flex-shrink: 0;
+  }
+
+  div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .lbl {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgba($plat, 0.45);
+    margin-bottom: 5px;
+  }
+
+  b {
+    color: $plat;
+    font-size: 0.98rem;
+    word-break: break-word;
+  }
+
+  .go {
+    color: rgba($plat, 0.4);
+    transition:
+      color 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  &:not(.static):hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateY(-3px);
+
+    .go {
+      color: $lime;
+      transform: translate(2px, -2px);
     }
+  }
+}
+
+.socials-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 22px;
+  padding: 22px 24px;
+
+  .lbl {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgba($plat, 0.45);
+    margin-bottom: 14px;
   }
 
   .socials {
     display: flex;
     gap: 12px;
-    margin-top: 4px;
 
     a {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
       border-radius: 50%;
-      background: $black;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: $plat;
       font-size: 1.15rem;
       text-decoration: none;
       transition:
-        transform 0.2s ease,
-        background 0.2s ease;
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease;
 
       &:hover {
+        background: $lime;
+        color: $ink;
         transform: translateY(-3px);
-        background: $accent;
-        color: $black;
       }
     }
   }
 }
 
+// ── Form panel ──────────────────────────────────────────────
 .form-card {
-  background: $cream;
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 28px;
   padding: 36px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+
+  > .hud-label {
+    margin-bottom: 24px;
+  }
 
   .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 16px;
   }
 
   .field {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
 
     label {
       font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #555;
+      letter-spacing: 0.12em;
+      color: rgba($plat, 0.5);
       margin-bottom: 8px;
     }
 
     input,
     textarea {
-      border: 1px solid #ddd;
-      background: #fff;
-      border-radius: 12px;
-      padding: 0.85rem 1rem;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: $plat;
+      border-radius: 14px;
+      padding: 0.9rem 1.1rem;
       font-size: 15px;
       font-family: inherit;
       outline: none;
-      transition: border 0.2s ease;
+      box-shadow: 0 0 0 1px transparent;
+      transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &::placeholder {
+        color: rgba($plat, 0.35);
+      }
 
       &:focus {
-        border-color: $black;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 1px rgba($lime, 0.6);
       }
     }
 
@@ -355,19 +414,29 @@ $cream: #f6f2ec;
     }
   }
 
+  // The lime spark CTA.
   .submit-btn {
-    background: $black;
-    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: $lime;
+    color: $ink;
     border: none;
     padding: 1rem 2rem;
     border-radius: 999px;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    box-shadow: 0 16px 38px -16px rgba($lime, 0.7);
+    transition:
+      transform 0.25s ease,
+      filter 0.25s ease;
 
     &:hover {
       transform: translateY(-2px);
+      filter: brightness(1.06);
     }
   }
 
@@ -378,13 +447,13 @@ $cream: #f6f2ec;
     font-size: 14px;
 
     &.error {
-      background: #ffe8e8;
-      color: #b00020;
+      background: rgba(255, 141, 141, 0.12);
+      color: #ff8d8d;
     }
 
     &.success {
-      background: #e7f8ec;
-      color: #0f7a35;
+      background: rgba(116, 224, 138, 0.12);
+      color: #74e08a;
 
       a {
         color: inherit;
@@ -394,17 +463,12 @@ $cream: #f6f2ec;
 }
 
 @media (max-width: 860px) {
-  .contact-main .inner {
+  .contact-main {
     grid-template-columns: 1fr;
-    gap: 40px;
   }
 }
 
 @media (max-width: 520px) {
-  .contact-hero {
-    padding: 48px 0 40px;
-  }
-
   .form-card {
     padding: 24px;
 

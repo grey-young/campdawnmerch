@@ -46,12 +46,13 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-$black: #0a0a0a;
-$accent: #c8f135;
+$black: #131515;
+$accent: #ffbf38;
 $cream: #f6f2ec;
+$plat: #f0f0ec;
 
 .policy-page {
-  background: #fff;
+  background: #131515;
 }
 
 .policy-hero {
@@ -124,7 +125,7 @@ $cream: #f6f2ec;
 }
 
 .prose {
-  color: #2a2a2a;
+  color: rgba(240, 240, 236, 0.72);
   font-size: 16px;
   line-height: 1.75;
 
@@ -134,8 +135,8 @@ $cream: #f6f2ec;
     letter-spacing: -0.01em;
     margin: 44px 0 16px;
     padding-top: 24px;
-    border-top: 1px solid #eee;
-    color: $black;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: $plat;
   }
 
   :deep(h2:first-of-type) {
@@ -147,7 +148,7 @@ $cream: #f6f2ec;
   :deep(h3) {
     font-size: 18px;
     margin: 28px 0 10px;
-    color: $black;
+    color: $plat;
   }
 
   :deep(p) {
@@ -165,7 +166,7 @@ $cream: #f6f2ec;
   }
 
   :deep(a) {
-    color: $black;
+    color: $plat;
     font-weight: 700;
     text-decoration: underline;
     text-decoration-color: $accent;
@@ -173,11 +174,14 @@ $cream: #f6f2ec;
   }
 
   :deep(strong) {
-    color: $black;
+    color: $plat;
   }
 
+  // Faint glass callout instead of a cream block.
   :deep(.callout) {
-    background: $cream;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 22px 24px;
     margin: 28px 0;

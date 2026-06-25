@@ -150,7 +150,8 @@ export default {
 <style lang="scss" scoped>
 .section-4 {
   height: 80vh;
-  background: #fff;
+  background: #131515;
+  color: #f0f0ec;
   position: relative;
   z-index: 2;
   display: flex;
@@ -200,12 +201,14 @@ export default {
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background: #f0f0f0;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      color: #000;
+      color: #f0f0ec;
       text-decoration: none;
       opacity: 0;
       transform: scale(0);
@@ -214,8 +217,8 @@ export default {
         color 0.3s ease;
 
       &:hover {
-        background: #000;
-        color: #fff;
+        background: #ffbf38;
+        color: #131515;
       }
 
       &.social-1 {

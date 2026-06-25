@@ -5,7 +5,7 @@
     <section class="order-wrap">
       <div class="page-head" ref="pageHead">
         <div>
-          <p>Order</p>
+          <p class="hud-label">Order</p>
           <h1>{{ order?.order_number || "Order details" }}</h1>
           <span>Track your merch order and payment details.</span>
         </div>
@@ -352,6 +352,8 @@ export default {
 <style scoped lang="scss">
 .order-page {
   min-height: 100vh;
+  background: #131515;
+  color: #f0f0ec;
 }
 
 .order-wrap {
@@ -373,7 +375,7 @@ export default {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     font-weight: 900;
-    color: #8b6b3f;
+    color: #ffbf38;
   }
 
   h1 {
@@ -381,28 +383,40 @@ export default {
     font-size: clamp(42px, 7vw, 82px);
     line-height: 0.9;
     letter-spacing: -0.06em;
+    color: #f0f0ec;
   }
 
   span {
     display: block;
     margin-top: 12px;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   a {
     text-decoration: none;
-    color: #111;
-    background: white;
+    color: #f0f0ec;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 900;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+    transition:
+      background 0.25s ease,
+      transform 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-2px);
+    }
   }
 }
 
 .state-box {
   min-height: 360px;
-  background: white;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: 34px;
   display: grid;
   place-items: center;
@@ -411,19 +425,21 @@ export default {
 
   h2 {
     margin: 0;
+    color: #f0f0ec;
   }
 
   p {
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   a {
     text-decoration: none;
-    background: #111;
-    color: white;
+    background: #ffbf38;
+    color: #131515;
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 900;
+    box-shadow: 0 16px 38px -16px rgba(255, 191, 56, 0.7);
   }
 }
 
@@ -443,22 +459,27 @@ export default {
 .card,
 .status-card,
 .summary {
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 30px;
   padding: 26px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 26px 60px -40px rgba(0, 0, 0, 0.95);
 }
 
+// Lime-tinted glass for the order hero.
 .hero-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111;
-  color: white;
+  background: rgba(255, 191, 56, 0.06);
+  color: #f0f0ec;
 
   p {
     margin: 0 0 8px;
-    color: #f4d28b;
+    color: #ffbf38;
     font-size: 12px;
     font-weight: 900;
     letter-spacing: 3px;
@@ -468,16 +489,17 @@ export default {
   h2 {
     margin: 0;
     font-size: 32px;
+    color: #f0f0ec;
   }
 
   span {
     display: block;
     margin-top: 8px;
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   b {
-    color: #f4d28b;
+    color: #ffbf38;
     font-size: 28px;
   }
 }
@@ -486,6 +508,7 @@ h2 {
   margin: 0 0 18px;
   font-size: 26px;
   letter-spacing: -0.04em;
+  color: #f0f0ec;
 }
 
 .status-row {
@@ -495,19 +518,22 @@ h2 {
   margin-bottom: 20px;
 
   div {
-    background: #fbf7f1;
+    background: rgba(255, 255, 255, 0.04);
     border-radius: 20px;
     padding: 14px;
-    opacity: 0.45;
+    opacity: 0.4;
+    transition:
+      opacity 0.3s ease,
+      background 0.3s ease;
 
     &.active {
       opacity: 1;
-      background: #111;
-      color: white;
+      background: #ffbf38;
+      color: #131515;
 
       span {
-        background: #f4d28b;
-        color: #111;
+        background: #131515;
+        color: #ffbf38;
       }
     }
   }
@@ -518,7 +544,8 @@ h2 {
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: white;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f0f0ec;
     font-weight: 900;
     margin-bottom: 10px;
   }
@@ -538,8 +565,8 @@ h2 {
   span {
     padding: 8px 12px;
     border-radius: 999px;
-    background: #eee;
-    color: #555;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(240, 240, 236, 0.6);
     text-transform: uppercase;
     font-size: 12px;
     font-weight: 900;
@@ -548,23 +575,23 @@ h2 {
   .paid,
   .delivered,
   .confirmed {
-    background: #e7f8ec;
-    color: #0f7a35;
+    background: rgba(116, 224, 138, 0.14);
+    color: #74e08a;
   }
 
   .pending,
   .unpaid,
   .processing,
   .not_started {
-    background: #fff2d8;
-    color: #9b6a00;
+    background: rgba(255, 214, 107, 0.14);
+    color: #ffd66b;
   }
 
   .failed,
   .cancelled,
   .refunded {
-    background: #ffe8e8;
-    color: #b00020;
+    background: rgba(255, 141, 141, 0.14);
+    color: #ff8d8d;
   }
 }
 
@@ -577,7 +604,7 @@ h2 {
 
   p {
     margin: 0;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 }
 
@@ -591,44 +618,49 @@ h2 {
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 14px;
-  background: #fbf7f1;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 20px;
   padding: 16px;
 
   h3 {
     margin: 0;
+    color: #f0f0ec;
   }
 
   p {
     margin: 6px 0 0;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   span,
   b {
     font-weight: 900;
+    color: #f0f0ec;
   }
 }
 
 .info-list {
   p {
     margin: 9px 0;
-    color: #555;
+    color: rgba(240, 240, 236, 0.6);
   }
 
   b {
-    color: #111;
+    color: #f0f0ec;
   }
 }
 
+// Elevated glass — one step brighter than the cards.
 .summary {
   position: sticky;
   top: 24px;
-  background: #111;
-  color: white;
+  background: rgba(8, 39, 81, 0.34);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #f0f0ec;
 
   h2 {
-    color: white;
+    color: #f0f0ec;
   }
 }
 
@@ -638,14 +670,14 @@ h2 {
   justify-content: space-between;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
   span {
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   b {
-    color: white;
+    color: #f0f0ec;
   }
 }
 
@@ -655,29 +687,29 @@ h2 {
   span,
   b {
     font-size: 22px;
-    color: #f4d28b;
+    color: #ffbf38;
   }
 }
 
 .payment-box,
 .note-box {
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 22px;
   padding: 18px;
 
   h3 {
     margin: 0 0 12px;
-    color: #f4d28b;
+    color: #ffbf38;
   }
 
   p {
     margin: 8px 0;
-    color: #ddd;
+    color: rgba(240, 240, 236, 0.65);
   }
 
   b {
-    color: white;
+    color: #f0f0ec;
   }
 }
 
@@ -686,19 +718,30 @@ h2 {
   margin-top: 20px;
   text-align: center;
   text-decoration: none;
-  background: white;
-  color: #111;
+  background: #ffbf38;
+  color: #131515;
   padding: 15px 18px;
   border-radius: 999px;
   font-weight: 900;
+  box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+  }
 }
 
 .toast {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  background: #ffe8e8;
-  color: #b00020;
+  background: rgba(255, 141, 141, 0.16);
+  color: #ff8d8d;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 14px 16px;
   border-radius: 16px;
   font-weight: 900;

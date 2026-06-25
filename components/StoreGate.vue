@@ -150,7 +150,7 @@ export default {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #050505;
+  background: #131515;
   color: white;
   display: grid;
   place-items: center;
@@ -183,8 +183,8 @@ export default {
 
     a {
       display: inline-block;
-      background: #c8f135;
-      color: #050505;
+      background: #ffbf38;
+      color: #131515;
       text-decoration: none;
       font-weight: 800;
       padding: 14px 26px;
@@ -206,11 +206,15 @@ export default {
 .sg-modal {
   position: relative;
   width: min(440px, 100%);
-  background: white;
-  color: #111;
+  background: rgba(19, 21, 21, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #f0f0ec;
   border-radius: 24px;
   padding: 34px 28px 28px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 40px 100px rgba(0, 0, 0, 0.6);
   text-align: center;
 
   .sg-close {
@@ -221,14 +225,19 @@ export default {
     background: transparent;
     font-size: 28px;
     line-height: 1;
-    color: #999;
+    color: rgba(240, 240, 236, 0.5);
     cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #f0f0ec;
+    }
   }
 
   .sg-badge {
     display: inline-block;
-    background: #111;
-    color: #f4d28b;
+    background: rgba(255, 191, 56, 0.12);
+    color: #ffbf38;
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 0.18em;
@@ -242,17 +251,18 @@ export default {
     margin: 0 0 24px;
     font-size: 17px;
     line-height: 1.6;
-    color: #333;
+    color: rgba(240, 240, 236, 0.72);
   }
 
   .sg-ok {
     border: none;
-    background: #111;
-    color: white;
+    background: #ffbf38;
+    color: #131515;
     font-weight: 800;
     padding: 14px 30px;
     border-radius: 999px;
     cursor: pointer;
+    box-shadow: 0 14px 34px -14px rgba(255, 191, 56, 0.7);
     transition: transform 0.2s ease;
 
     &:hover {

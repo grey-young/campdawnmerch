@@ -1,23 +1,31 @@
 <template>
   <section class="section-2">
-    <div class="head">
-      <h1>Shop CampDawn</h1>
+    <header class="s2-head">
+      <div>
+        <span class="hud-label"><span class="idx">02</span> // Shop</span>
+        <h1>Shop <em>CampDawn</em></h1>
+      </div>
 
-      <nuxt-link to="/products">
-        <button>
-          View More
-          <i class="bi bi-arrow-up-right"></i>
-        </button>
+      <nuxt-link to="/products" class="view-more">
+        View all <i class="bi bi-arrow-up-right"></i>
       </nuxt-link>
+    </header>
+
+    <div class="marquee-band">
+      <Marquee
+        :items="['New Drops', 'Limited Runs', 'CampDawn', 'Ships Worldwide']"
+        :duration="26"
+      />
     </div>
 
     <div v-if="categories.length" class="category-rows">
       <div
-        v-for="category in categories"
+        v-for="(category, idx) in categories"
         :key="category.id"
         class="category-row"
       >
         <div class="row-head">
+          <span class="r-idx">{{ String(idx + 1).padStart(2, "0") }}</span>
           <h2>{{ category.name }}</h2>
         </div>
 
@@ -297,6 +305,19 @@ export default {
     };
   },
 
+  computed: {
+    // The freshest product overall (categories come back newest-first),
+    // used for the full-width drop spotlight.
+    spotlight() {
+      for (const category of this.categories) {
+        if (category.products && category.products.length) {
+          return category.products[0];
+        }
+      }
+      return null;
+    },
+  },
+
   created() {
     // Non-reactive stores: DOM track elements (keyed by category id) and the
     // GSAP loop instances. Kept off the reactive data to avoid Vue proxying
@@ -415,50 +436,162 @@ export default {
 
   min-height: 50vh;
   padding: 80px 0;
-  background: white;
+  background: #131515;
+  color: #f0f0ec;
   position: relative;
   z-index: 2;
   overflow: hidden;
 
   // Section heading lines up with the gutter.
-  .head {
+  .s2-head {
     padding: 0 var(--gutter);
-    margin: 0 0 40px;
+    margin: 0 0 30px;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
 
     h1 {
-      font-size: clamp(24px, 4vw, 42px);
+      margin: 14px 0 0;
+      font-size: clamp(28px, 5vw, 56px);
       text-transform: uppercase;
-      font-weight: 700;
-    }
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+      color: #f0f0ec;
 
-    a {
-      color: black;
-      text-decoration: none;
-      flex-shrink: 0;
-
-      button {
-        background: black;
-        border: none;
-        padding: 0.875rem 2rem;
-        color: white;
-        border-radius: 100px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        white-space: nowrap;
-
-        &:hover {
-          transform: translateY(-3px);
-        }
+      em {
+        font-style: normal;
+        color: #ffbf38;
       }
     }
+
+    .view-more {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #f0f0ec;
+      background: #082751;
+      padding: 0.8rem 1.4rem;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition:
+        background 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease;
+
+      &:hover {
+        background: #ffbf38;
+        color: #131515;
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  // Full-width editorial spotlight for the newest product.
+  .spotlight {
+    margin: 0 var(--gutter) 34px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    overflow: hidden;
+    border-radius: 28px;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    transition: background 0.45s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+
+      .spotlight-media img {
+        transform: scale(1.05);
+        filter: brightness(1.02);
+      }
+
+      .spotlight-copy .cta {
+        gap: 14px;
+        color: #ffbf38;
+      }
+    }
+
+    .spotlight-media {
+      overflow: hidden;
+      min-height: 340px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: brightness(0.9);
+        transition:
+          transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+          filter 0.5s ease;
+      }
+    }
+
+    .spotlight-copy {
+      align-self: center;
+      padding: 40px;
+
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #ffbf38;
+        background: rgba(255, 191, 56, 0.12);
+        padding: 6px 12px;
+        border-radius: 999px;
+      }
+
+      h2 {
+        margin: 18px 0 0;
+        font-size: clamp(26px, 3.4vw, 44px);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: #f0f0ec;
+      }
+
+      .price {
+        margin: 14px 0 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: #f0f0ec;
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 26px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #f0f0ec;
+        transition:
+          gap 0.3s ease,
+          color 0.3s ease;
+      }
+    }
+  }
+
+  .marquee-band {
+    margin: 0 0 46px;
+    padding: 16px 0;
+    background: rgba(255, 255, 255, 0.025);
   }
 
   // One stacked row per category.
@@ -472,12 +605,24 @@ export default {
   .row-head {
     padding: 0 var(--gutter);
     margin: 0 0 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+
+    .r-idx {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #ffbf38;
+    }
 
     h2 {
       font-size: clamp(18px, 2.4vw, 26px);
       text-transform: uppercase;
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.01em;
       margin: 0;
+      color: #f0f0ec;
     }
   }
 
@@ -501,7 +646,7 @@ export default {
       display: block;
       flex: 0 0 auto;
       width: clamp(240px, 22vw, 300px);
-      color: black;
+      color: #f0f0ec;
     }
   }
 
@@ -515,17 +660,24 @@ export default {
     height: 50px;
     border: none;
     border-radius: 50%;
-    background: #111;
-    color: white;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #f0f0ec;
     font-size: 22px;
     cursor: pointer;
     display: grid;
     place-items: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    transition: 0.25s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition:
+      transform 0.25s ease,
+      background 0.25s ease,
+      color 0.25s ease;
 
     &:hover {
       transform: translateY(-50%) scale(1.08);
+      background: #ffbf38;
+      color: #131515;
     }
 
     &.left {
@@ -586,6 +738,26 @@ export default {
     // On touch devices the carousel is swiped, so hide the arrows.
     .nav-arrow {
       display: none;
+    }
+  }
+}
+
+@media (max-width: 820px) {
+  .section-2 {
+    .spotlight {
+      grid-template-columns: 1fr;
+
+      .spotlight-media {
+        min-height: 240px;
+      }
+
+      .spotlight-copy {
+        padding: 26px;
+      }
+    }
+
+    .s2-head {
+      align-items: flex-start;
     }
   }
 }

@@ -20,7 +20,7 @@
           </div>
 
           <div class="head">
-            <p class="animate-item">CREATE ACCOUNT</p>
+            <p class="animate-item hud-label">CREATE ACCOUNT</p>
 
             <h1 class="animate-item">Join the store</h1>
 
@@ -265,6 +265,7 @@ export default {
 <style scoped lang="scss">
 .signup-page {
   min-height: 100vh;
+  background: #131515;
 }
 
 .signup-layout {
@@ -349,7 +350,7 @@ export default {
     height: 52px;
     width: 52px;
     object-fit: contain;
-    background: #111;
+    background: rgba(255, 255, 255, 0.06);
     padding: 8px;
     border-radius: 14px;
   }
@@ -359,6 +360,7 @@ export default {
     font-size: 18px;
     font-weight: 900;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 }
 
@@ -370,7 +372,7 @@ export default {
     font-size: 12px;
     letter-spacing: 5px;
     font-weight: 900;
-    color: #9b753f;
+    color: #ffbf38;
   }
 
   h1 {
@@ -378,12 +380,13 @@ export default {
     font-size: clamp(46px, 5vw, 72px);
     line-height: 0.9;
     letter-spacing: -4px;
+    color: #f0f0ec;
   }
 
   span {
     display: block;
     margin-top: 18px;
-    color: #777;
+    color: rgba(240, 240, 236, 0.55);
     line-height: 1.7;
     font-size: 16px;
   }
@@ -409,25 +412,34 @@ export default {
     font-weight: 900;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #666;
+    color: rgba(240, 240, 236, 0.55);
   }
 
+  // Dark glass field, no hard border.
   input {
     width: 100%;
-    border: 1px solid #ddd4c8;
-    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #f0f0ec;
     border-radius: 18px;
     padding: 17px 18px;
     outline: none;
     font-size: 15px;
+    box-shadow: 0 0 0 1px transparent;
     transition:
-      border-color 0.25s ease,
       background 0.25s ease,
+      box-shadow 0.25s ease,
       transform 0.25s ease;
 
+    &::placeholder {
+      color: rgba(240, 240, 236, 0.35);
+    }
+
     &:focus {
-      border-color: #111;
-      background: white;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 1px rgba(255, 191, 56, 0.6);
       transform: translateY(-1px);
     }
   }
@@ -440,40 +452,40 @@ export default {
   font-weight: 800;
 
   &.error {
-    background: #ffe8e8;
-    color: #b00020;
+    background: rgba(255, 141, 141, 0.12);
+    color: #ff8d8d;
   }
 
   &.success {
-    background: #e8f8ec;
-    color: #0f7a35;
+    background: rgba(116, 224, 138, 0.12);
+    color: #74e08a;
   }
 }
 
+// The lime spark CTA.
 button[type="submit"] {
   width: 100%;
   margin-top: 22px;
   border: none;
-  background: #111;
-  color: white;
+  background: #ffbf38;
+  color: #131515;
   padding: 18px;
   border-radius: 999px;
   font-weight: 900;
   font-size: 15px;
   cursor: pointer;
+  box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
   transition:
     transform 0.25s ease,
-    background 0.25s ease,
-    box-shadow 0.25s ease;
+    filter 0.25s ease;
 
   &:hover {
     transform: translateY(-2px);
-    background: black;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+    filter: brightness(1.06);
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
@@ -485,11 +497,11 @@ button[type="submit"] {
   justify-content: center;
 
   span {
-    color: #777;
+    color: rgba(240, 240, 236, 0.55);
   }
 
   a {
-    color: #111;
+    color: #ffbf38;
     font-weight: 900;
     text-decoration: none;
   }

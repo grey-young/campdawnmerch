@@ -92,9 +92,9 @@ export default {
 
 <style lang="scss" scoped>
 // ── Gamer palette ─────────────────────────────────────────────
-$black: #0a0a0a;
+$black: #131515;
 $offwhite: #f0f0ec;
-$accent: #c8f135; // toxic lime, classic gamer highlight
+$accent: #ffbf38; // toxic lime, classic gamer highlight
 
 .background {
   opacity: 0;

@@ -5,7 +5,7 @@
     <section class="account-wrap">
       <div class="page-head" ref="pageHead">
         <div>
-          <p>Account</p>
+          <p class="hud-label">Account</p>
           <h1>My profile</h1>
           <span>Manage your details and view recent orders.</span>
         </div>
@@ -278,6 +278,8 @@ export default {
 <style scoped lang="scss">
 .account-page {
   min-height: 100vh;
+  background: #131515;
+  color: #f0f0ec;
 }
 
 .account-wrap {
@@ -295,7 +297,7 @@ export default {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     font-weight: 900;
-    color: #8b6b3f;
+    color: #ffbf38;
   }
 
   h1 {
@@ -303,12 +305,13 @@ export default {
     font-size: clamp(44px, 8vw, 90px);
     line-height: 0.9;
     letter-spacing: -0.06em;
+    color: #f0f0ec;
   }
 
   span {
     display: block;
     margin-top: 12px;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 }
 
@@ -317,17 +320,20 @@ export default {
   display: grid;
   place-items: center;
   text-align: center;
-  background: white;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: 34px;
   padding: 40px;
 
   a {
     text-decoration: none;
-    background: #111;
-    color: white;
+    background: #ffbf38;
+    color: #131515;
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 900;
+    box-shadow: 0 16px 38px -16px rgba(255, 191, 56, 0.7);
   }
 }
 
@@ -340,29 +346,35 @@ export default {
 
 .profile-card,
 .orders-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 34px;
   padding: 28px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.162);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 30px 70px -42px rgba(0, 0, 0, 0.95);
 }
 
 .avatar {
   height: 88px;
   width: 88px;
   border-radius: 28px;
-  background: #111;
-  color: #f4d28b;
+  background: #ffbf38;
+  color: #131515;
   display: grid;
   place-items: center;
   font-size: 28px;
   font-weight: 950;
   margin-bottom: 22px;
+  box-shadow: 0 0 36px rgba(255, 191, 56, 0.35);
 }
 
 h2 {
   margin: 0 0 22px;
   font-size: 28px;
   letter-spacing: -0.04em;
+  color: #f0f0ec;
 }
 
 .form-group {
@@ -376,25 +388,34 @@ h2 {
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   input,
   textarea {
     width: 100%;
-    border: 1px solid #e4d8c9;
-    background: #fbf7f1;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #f0f0ec;
     border-radius: 17px;
     padding: 15px 16px;
     outline: none;
+    box-shadow: 0 0 0 1px transparent;
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &::placeholder {
+      color: rgba(240, 240, 236, 0.35);
+    }
 
     &:focus {
-      border-color: #111;
-      background: white;
+      box-shadow: 0 0 0 1px rgba(255, 191, 56, 0.6);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     &:disabled {
-      opacity: 0.6;
+      opacity: 0.45;
       cursor: not-allowed;
     }
   }
@@ -411,26 +432,41 @@ h2 {
   font-weight: 800;
 
   &.error {
-    background: #ffe8e8;
-    color: #b00020;
+    background: rgba(255, 141, 141, 0.12);
+    color: #ff8d8d;
   }
 
   &.success {
-    background: #e7f8ec;
-    color: #0f7a35;
+    background: rgba(116, 224, 138, 0.12);
+    color: #74e08a;
   }
 }
 
+// The lime spark CTA.
 button[type="submit"] {
   width: 100%;
   border: none;
-  background: #111;
-  color: white;
+  background: #ffbf38;
+  color: #131515;
   padding: 16px 18px;
   border-radius: 999px;
   font-weight: 900;
   cursor: pointer;
   margin-top: 8px;
+  box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .card-head {
@@ -445,13 +481,13 @@ button[type="submit"] {
 
   p {
     margin: 0;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   a {
     text-decoration: none;
-    color: #111;
-    background: #f4efe7;
+    color: #f0f0ec;
+    background: rgba(255, 255, 255, 0.06);
     padding: 12px 15px;
     border-radius: 999px;
     font-weight: 900;
@@ -460,17 +496,18 @@ button[type="submit"] {
 }
 
 .empty-orders {
-  background: #fbf7f1;
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 24px;
   padding: 40px;
   text-align: center;
 
   h3 {
     margin: 0;
+    color: #f0f0ec;
   }
 
   p {
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 }
 
@@ -484,47 +521,61 @@ button[type="submit"] {
   grid-template-columns: 1fr auto auto auto;
   align-items: center;
   gap: 12px;
-  background: #fbf7f1;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 22px;
   padding: 16px;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateX(2px);
+  }
 
   h3 {
     margin: 0;
+    color: #f0f0ec;
   }
 
   p {
     margin: 5px 0 0;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   span {
     padding: 8px 11px;
     border-radius: 999px;
-    background: #fff2d8;
-    color: #9b6a00;
+    background: rgba(255, 214, 107, 0.14);
+    color: #ffd66b;
     font-size: 12px;
     font-weight: 900;
     text-transform: uppercase;
 
     &.delivered,
     &.confirmed {
-      background: #e7f8ec;
-      color: #0f7a35;
+      background: rgba(116, 224, 138, 0.14);
+      color: #74e08a;
     }
 
     &.cancelled {
-      background: #ffe8e8;
-      color: #b00020;
+      background: rgba(255, 141, 141, 0.14);
+      color: #ff8d8d;
     }
   }
 
   a {
     text-decoration: none;
-    background: #111;
-    color: white;
+    background: #ffbf38;
+    color: #131515;
     padding: 10px 13px;
     border-radius: 999px;
     font-weight: 900;
+    transition: filter 0.2s ease;
+
+    &:hover {
+      filter: brightness(1.06);
+    }
   }
 }
 

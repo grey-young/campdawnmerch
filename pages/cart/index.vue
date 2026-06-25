@@ -3,7 +3,7 @@
     <section class="cart-wrap">
       <div class="page-head" ref="pageHead">
         <div>
-          <p>Your bag</p>
+          <p class="hud-label">Your bag</p>
           <h1>Cart</h1>
         </div>
 
@@ -563,8 +563,8 @@ export default {
 <style lang="scss" scoped>
 .cart-page {
   min-height: 100vh;
-  background: #f7f3ed;
-  color: #111;
+  background: #131515;
+  color: #f0f0ec;
 }
 
 .cart-wrap {
@@ -586,7 +586,7 @@ export default {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     font-weight: 900;
-    color: #8b6b3f;
+    color: #ffbf38;
   }
 
   h1 {
@@ -594,47 +594,61 @@ export default {
     font-size: clamp(44px, 8vw, 90px);
     line-height: 0.9;
     letter-spacing: -0.06em;
+    color: #f0f0ec;
   }
 
   a {
     text-decoration: none;
-    color: #111;
-    background: white;
+    color: #f0f0ec;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 800;
-    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06);
+    transition:
+      background 0.25s ease,
+      transform 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-2px);
+    }
   }
 }
 
 .state-box {
   min-height: 360px;
   border-radius: 34px;
-  background: white;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: grid;
   place-items: center;
   text-align: center;
   padding: 40px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 
   h2 {
     margin: 0;
     font-size: 34px;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 
   p {
     margin: 10px 0 24px;
-    color: #777;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   a {
     text-decoration: none;
-    background: #111;
-    color: white;
+    background: #ffbf38;
+    color: #131515;
     padding: 14px 18px;
     border-radius: 999px;
     font-weight: 900;
+    box-shadow: 0 16px 38px -16px rgba(255, 191, 56, 0.7);
   }
 }
 
@@ -655,17 +669,28 @@ export default {
   grid-template-columns: 118px 1fr 110px 118px 120px auto;
   gap: 16px;
   align-items: center;
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: 28px;
   padding: 16px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 18px 50px -34px rgba(0, 0, 0, 0.9);
+  transition:
+    background 0.4s ease,
+    transform 0.4s var(--ease, ease);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 
 .item-image {
   width: 118px;
   height: 118px;
   border-radius: 22px;
-  background: #eee3d2;
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 
   img {
@@ -680,16 +705,18 @@ export default {
     margin: 0;
     font-size: 21px;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 
   p {
     margin: 7px 0 10px;
-    color: #666;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   span {
     display: inline-flex;
-    background: #f4efe7;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f0f0ec;
     padding: 7px 10px;
     border-radius: 999px;
     font-size: 12px;
@@ -713,42 +740,64 @@ export default {
     height: 34px;
     border: none;
     border-radius: 50%;
-    background: #f4efe7;
+    background: rgba(255, 255, 255, 0.07);
+    color: #f0f0ec;
     font-size: 18px;
     font-weight: 900;
     cursor: pointer;
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+
+    &:hover {
+      background: #ffbf38;
+      color: #131515;
+      transform: translateY(-1px);
+    }
   }
 
   span {
     min-width: 24px;
     text-align: center;
     font-weight: 900;
+    color: #f0f0ec;
   }
 }
 
 .remove {
   border: none;
-  background: #fff0f0;
-  color: #b00020;
+  background: rgba(255, 141, 141, 0.12);
+  color: #ff8d8d;
   padding: 12px 14px;
   border-radius: 999px;
   font-weight: 900;
   cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 141, 141, 0.2);
+  }
 }
 
+// Elevated glass panel — one transparency step above the item cards.
 .summary {
   position: sticky;
   top: 24px;
-  background: #111;
-  color: white;
+  background: rgba(8, 39, 81, 0.34);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #f0f0ec;
   border-radius: 34px;
   padding: 26px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.07) inset,
+    0 30px 70px -40px rgba(0, 0, 0, 0.95);
 
   h2 {
     margin: 0 0 20px;
     font-size: 28px;
     letter-spacing: -0.04em;
+    color: #f0f0ec;
   }
 }
 
@@ -758,14 +807,14 @@ export default {
   justify-content: space-between;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
   span {
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
   }
 
   b {
-    color: white;
+    color: #f0f0ec;
   }
 }
 
@@ -775,14 +824,14 @@ export default {
   label {
     display: block;
     margin-bottom: 10px;
-    color: #aaa;
+    color: rgba(240, 240, 236, 0.5);
     font-size: 13px;
     font-weight: 900;
   }
 
   p {
     margin: 10px 0 0;
-    color: #f4d28b;
+    color: #ffbf38;
     font-size: 13px;
     font-weight: 800;
   }
@@ -799,16 +848,27 @@ export default {
     outline: none;
     padding: 13px 14px;
     border-radius: 14px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #f0f0ec;
+
+    &::placeholder {
+      color: rgba(240, 240, 236, 0.35);
+    }
   }
 
   button {
     border: none;
-    background: #f4d28b;
-    color: #111;
+    background: #ffbf38;
+    color: #131515;
     padding: 13px 14px;
     border-radius: 14px;
     font-weight: 900;
     cursor: pointer;
+    transition: filter 0.2s ease;
+
+    &:hover {
+      filter: brightness(1.06);
+    }
   }
 }
 
@@ -816,7 +876,7 @@ export default {
   margin-top: 10px;
   border: none;
   background: transparent;
-  color: white;
+  color: rgba(240, 240, 236, 0.7);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -828,20 +888,30 @@ export default {
   span,
   b {
     font-size: 22px;
-    color: #f4d28b;
+    color: #ffbf38;
   }
 }
 
+// The lime spark CTA.
 .checkout {
   width: 100%;
   margin-top: 18px;
   border: none;
-  background: white;
-  color: #111;
+  background: #ffbf38;
+  color: #131515;
   padding: 16px 18px;
   border-radius: 999px;
   font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 16px 40px -16px rgba(255, 191, 56, 0.7);
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+  }
 }
 
 .toast {
@@ -852,16 +922,18 @@ export default {
   padding: 14px 16px;
   border-radius: 16px;
   font-weight: 900;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
 
   &.error {
-    background: #ffe8e8;
-    color: #b00020;
+    background: rgba(255, 141, 141, 0.16);
+    color: #ff8d8d;
   }
 
   &.success {
-    background: #e7f8ec;
-    color: #0f7a35;
+    background: rgba(116, 224, 138, 0.16);
+    color: #74e08a;
   }
 }
 

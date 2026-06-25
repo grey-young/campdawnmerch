@@ -53,18 +53,34 @@ export default {
 </script>
 
 <style scoped lang="scss">
+$lime: #ffbf38;
+$plat: #f0f0ec;
+
 .card {
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  transition: transform 0.3s ease;
   cursor: pointer;
   height: 100%;
-  min-width: 0; // was 400px, let the parent grid control width
+  min-width: 0; // let the parent grid/track control width
   width: 100%;
-  background: white;
+  // Platinum glass: separation by transparency, no border.
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 18px 40px -28px rgba(0, 0, 0, 0.9);
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.45s ease,
+    box-shadow 0.45s ease;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.08) inset,
+      0 30px 60px -30px rgba(0, 0, 0, 0.95);
   }
 
   img {
@@ -74,19 +90,27 @@ export default {
       25vw,
       320px
     ); // scales with viewport, never too tall on mobile
-    object-fit: contain;
+    object-fit: cover;
     display: block;
-    background: #f3eee6;
+    background: rgba(255, 255, 255, 0.04);
+    filter: brightness(0.92) saturate(1.02);
+    transition: filter 0.5s ease;
+  }
+
+  &:hover img {
+    filter: brightness(1.04) saturate(1.06);
   }
 
   h3 {
-    font-size: clamp(14px, 1.5vw, 18px);
-    margin: 12px 14px 6px;
+    font-size: clamp(13px, 1.4vw, 16px);
+    margin: 14px 16px 8px;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: $plat;
     // Always reserve two lines and hide any overflow so titles of different
     // lengths never change the card height.
-    min-height: 2.4em;
+    min-height: 2.5em;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -95,19 +119,19 @@ export default {
   }
 
   p.price {
-    font-size: clamp(13px, 1.3vw, 16px);
-    font-weight: bold;
-    margin: 0 14px 14px;
-    color: #333;
+    font-size: clamp(14px, 1.3vw, 16px);
+    font-weight: 800;
+    margin: 0 16px 16px;
+    color: $plat;
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 9px;
 
     .compare {
       font-weight: 600;
-      color: #999;
+      color: rgba($plat, 0.4);
       text-decoration: line-through;
-      font-size: 0.85em;
+      font-size: 0.82em;
     }
   }
 }

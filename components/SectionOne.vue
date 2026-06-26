@@ -37,7 +37,9 @@
             <span>Enter the shop</span>
             <i class="bi bi-arrow-up-right"></i>
           </nuxt-link>
-          <nuxt-link to="/about" class="btn-link" v-magnetic="0.25">Our story</nuxt-link>
+          <nuxt-link to="/about" class="btn-link" v-magnetic="0.25"
+            >Our story</nuxt-link
+          >
         </div>
       </div>
 
@@ -51,7 +53,12 @@
           :data-depth="depths[index] || 0.1"
         >
           <nuxt-link :to="image.to || '/products'" class="frame-inner">
-            <img :src="image.src" :alt="image.alt" loading="eager" decoding="async" />
+            <img
+              :src="image.src"
+              :alt="image.alt"
+              loading="eager"
+              decoding="async"
+            />
             <span v-if="image.alt" class="frame-tag">{{ image.alt }}</span>
           </nuxt-link>
         </div>
@@ -69,11 +76,22 @@
 <script>
 // Pool of gaming + apparel/accessory icons a hero letter morphs into on hover.
 const LETTER_ICONS = [
-  "bi-controller", "bi-joystick", "bi-dice-5", "bi-dice-6", "bi-trophy-fill",
-  "bi-rocket-takeoff-fill", "bi-headset", "bi-cpu-fill", "bi-lightning-charge-fill",
-  "bi-bullseye", "bi-suit-spade-fill", "bi-suit-club-fill", "bi-fire",
-  "bi-bag-fill", "bi-handbag-fill", "bi-watch", "bi-eyeglasses", "bi-gem",
-  "bi-stars", "bi-emoji-sunglasses-fill", "bi-magic", "bi-stack",
+  "bi-controller",
+  "bi-joystick",
+  "bi-dice-5",
+  "bi-dice-6",
+  "bi-trophy-fill",
+  "bi-rocket-takeoff-fill",
+  "bi-headset",
+  "bi-cpu-fill",
+  "bi-suit-spade-fill",
+  "bi-suit-club-fill",
+  "bi-bag-fill",
+  "bi-handbag-fill",
+  "bi-watch",
+  "bi-eyeglasses",
+  "bi-emoji-sunglasses-fill",
+  "bi-stack",
 ];
 
 const DEFAULT_IMAGES = [
@@ -140,12 +158,20 @@ export default {
       const gsap = this.$gsap;
       if (!gsap) return;
 
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
       const frames = this.$refs.gallery?.querySelectorAll(".frame") || [];
 
       if (reduce) {
         gsap.set(
-          [this.$refs.eyebrow, this.$refs.tagline, this.$refs.actions, this.$refs.cue, ...frames],
+          [
+            this.$refs.eyebrow,
+            this.$refs.tagline,
+            this.$refs.actions,
+            this.$refs.cue,
+            ...frames,
+          ],
           { opacity: 1, y: 0, clearProps: "all" },
         );
         return;
@@ -167,7 +193,11 @@ export default {
           "-=0.3",
         )
         .from(this.$refs.tagline, { y: 24, opacity: 0, duration: 0.8 }, "-=0.6")
-        .from(this.$refs.actions, { y: 20, opacity: 0, duration: 0.7 }, "-=0.55")
+        .from(
+          this.$refs.actions,
+          { y: 20, opacity: 0, duration: 0.7 },
+          "-=0.55",
+        )
         .from(
           frames,
           { y: 70, opacity: 0, scale: 0.92, duration: 1, stagger: 0.1 },
@@ -179,7 +209,10 @@ export default {
       if (this.$refs.scramble) {
         tl.to(
           this.$refs.scramble,
-          { duration: 1.1, scrambleText: { text: "SEASON 001", chars: "01", speed: 0.5 } },
+          {
+            duration: 1.1,
+            scrambleText: { text: "SEASON 001", chars: "01", speed: 0.5 },
+          },
           0.4,
         );
       }
@@ -217,10 +250,17 @@ export default {
             overwrite: "auto",
           });
         });
-        gsap.to(this.$refs.glow, { x: cx * 40, y: cy * 30, duration: 1, ease: "power3.out" });
+        gsap.to(this.$refs.glow, {
+          x: cx * 40,
+          y: cy * 30,
+          duration: 1,
+          ease: "power3.out",
+        });
       };
       window.addEventListener("pointermove", this.onPointer, { passive: true });
-      this.cleanups.push(() => window.removeEventListener("pointermove", this.onPointer));
+      this.cleanups.push(() =>
+        window.removeEventListener("pointermove", this.onPointer),
+      );
     },
 
     // Each wordmark character flips to a random gaming/apparel icon on hover.
@@ -235,20 +275,42 @@ export default {
         const ico = el.querySelector(".ico");
 
         const enter = () => {
-          const icon = LETTER_ICONS[Math.floor(Math.random() * LETTER_ICONS.length)];
+          const icon =
+            LETTER_ICONS[Math.floor(Math.random() * LETTER_ICONS.length)];
           ico.className = "ico bi " + icon;
           gsap.killTweensOf([glyph, ico]);
-          gsap.to(glyph, { opacity: 0, scale: 0.3, duration: 0.22, ease: "power2.in" });
+          gsap.to(glyph, {
+            opacity: 0,
+            scale: 0.3,
+            duration: 0.22,
+            ease: "power2.in",
+          });
           gsap.fromTo(
             ico,
             { opacity: 0, scale: 0, rotate: -35 },
-            { opacity: 1, scale: 1, rotate: 0, duration: 0.45, ease: "back.out(3)" },
+            {
+              opacity: 1,
+              scale: 1,
+              rotate: 0,
+              duration: 0.45,
+              ease: "back.out(3)",
+            },
           );
         };
         const leave = () => {
           gsap.killTweensOf([glyph, ico]);
-          gsap.to(ico, { opacity: 0, scale: 0, duration: 0.2, ease: "power2.in" });
-          gsap.to(glyph, { opacity: 1, scale: 1, duration: 0.38, ease: "back.out(2)" });
+          gsap.to(ico, {
+            opacity: 0,
+            scale: 0,
+            duration: 0.2,
+            ease: "power2.in",
+          });
+          gsap.to(glyph, {
+            opacity: 1,
+            scale: 1,
+            duration: 0.38,
+            ease: "back.out(2)",
+          });
         };
 
         el.addEventListener("mouseenter", enter);
@@ -303,7 +365,11 @@ $plat: #f0f0ec;
       top: auto;
       left: -12%;
       bottom: -18%;
-      background: radial-gradient(circle, rgba(8, 39, 81, 0.85), transparent 60%);
+      background: radial-gradient(
+        circle,
+        rgba(8, 39, 81, 0.85),
+        transparent 60%
+      );
     }
   }
 
@@ -314,7 +380,11 @@ $plat: #f0f0ec;
       linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
     background-size: 64px 64px;
-    -webkit-mask-image: radial-gradient(circle at 60% 40%, #000, transparent 78%);
+    -webkit-mask-image: radial-gradient(
+      circle at 60% 40%,
+      #000,
+      transparent 78%
+    );
     mask-image: radial-gradient(circle at 60% 40%, #000, transparent 78%);
   }
 
@@ -580,11 +650,37 @@ $plat: #f0f0ec;
   }
 
   // Scattered collage positions
-  .f1 { top: 4%; left: 2%; width: 40%; height: 52%; }
-  .f2 { top: 0; right: 4%; width: 34%; height: 44%; }
-  .f3 { top: 40%; left: 30%; width: 40%; height: 56%; z-index: 2; }
-  .f4 { bottom: 2%; right: 2%; width: 30%; height: 40%; }
-  .f5 { bottom: 6%; left: 0; width: 26%; height: 34%; }
+  .f1 {
+    top: 4%;
+    left: 2%;
+    width: 40%;
+    height: 52%;
+  }
+  .f2 {
+    top: 0;
+    right: 4%;
+    width: 34%;
+    height: 44%;
+  }
+  .f3 {
+    top: 40%;
+    left: 30%;
+    width: 40%;
+    height: 56%;
+    z-index: 2;
+  }
+  .f4 {
+    bottom: 2%;
+    right: 2%;
+    width: 30%;
+    height: 40%;
+  }
+  .f5 {
+    bottom: 6%;
+    left: 0;
+    width: 26%;
+    height: 34%;
+  }
 }
 
 // ── Scroll cue ──────────────────────────────────────────────
@@ -622,8 +718,12 @@ $plat: #f0f0ec;
 }
 
 @keyframes cue-run {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(250%); }
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(250%);
+  }
 }
 
 // ── Responsive ──────────────────────────────────────────────
@@ -653,11 +753,25 @@ $plat: #f0f0ec;
   .gallery {
     height: 300px;
 
-    .f1 { width: 46%; height: 56%; }
-    .f2 { width: 40%; height: 46%; }
-    .f3 { width: 46%; height: 60%; }
-    .f4 { width: 36%; height: 42%; }
-    .f5 { display: none; }
+    .f1 {
+      width: 46%;
+      height: 56%;
+    }
+    .f2 {
+      width: 40%;
+      height: 46%;
+    }
+    .f3 {
+      width: 46%;
+      height: 60%;
+    }
+    .f4 {
+      width: 36%;
+      height: 42%;
+    }
+    .f5 {
+      display: none;
+    }
   }
 
   .cue {
